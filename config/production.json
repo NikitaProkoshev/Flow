@@ -1,0 +1,6 @@
+{
+  "port": 5000,
+  "jwtSecret": "pvnto2211",
+  "mongoUri": "mongodb://nprokoshev21:g8mV1u5DP0LxwOj5@cluster0-shard-00-00.sqrb4.mongodb.net:27017,cluster0-shard-00-01.sqrb4.mongodb.net:27017,cluster0-shard-00-02.sqrb4.mongodb.net:27017/?ssl=true&replicaSet=atlas-p682qt-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0",
+  "baseUrl": "http://localhost:5000"
+}
