@@ -1,15 +1,14 @@
 const {Router} = require('express');
-const Link = require('../models/link');
+const Task = require('../models/task');
 const router = Router()
 
 router.get('/:code', async (req, res) => {
     try {
-        const link = await Link.findOne({ code: req.params.code});
+        const task = await Task.findOne({ code: req.params.code});
 
-        if (link) {
-            link.clicks++;
-            await link.save()
-            return res.redirect(link.from);
+        if (task) {
+            await task.save()
+            return res.redirect(task.title);
         }
 
         res.status(404).json("Ссылка не найдена")

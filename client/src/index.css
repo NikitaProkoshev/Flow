@@ -1,6 +1,19 @@
 @import "~materialize-css/dist/css/materialize.min.css";
 
-.input-field>label {
+html, body, div#root {
+    height:100%;
+}
+
+html {
+    background-color: #424242;
+}
+
+h1, h2, h3, h4, h5, h6, p, input, select, textarea {
+    color: white;
+    font-size: 16px;
+}
+
+.input-fields>label {
     transform: translateY(-13px) scale(0.8) !important;
     transform-origin: 0 0 !important;
 }
@@ -21,4 +34,173 @@ input.yellow-input + label {
 
 input.yellow-input:focus + label {
     color: #ffeb3b!important;
+}
+
+
+div.modal#create {
+    border-radius: 22px;
+}
+
+div.createTask {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    color: white;
+    margin: 22px;
+}
+
+.input-block0 {
+    display: flex;
+    width: 100%;
+    height: 46px;
+}
+.input-block0 > * {
+    width: 20%;
+    height:100%;
+    border-bottom: 1px solid #00B956;
+}
+
+.input-block0 .epicIcon {
+    margin-right: 13px;
+    filter: grayscale(1);
+}
+
+.input-block0 button.selected .epicIcon {
+    filter: grayscale(0);
+}
+
+.input-block1 {
+    width: calc((100% - 22px) /6*5);
+    margin-right: 11px;
+}
+
+.input-block2 {
+    width: calc((100% - 22px) /6);
+    margin-left: 11px;
+}
+
+p#eisenhowerTitle {
+    display: flex;
+    justify-content: center;
+    line-height: 45px;
+    margin: 0;
+    border-bottom: 1px solid #424242;
+}
+
+div#eisenhowerMatrix {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: calc(100% - 46px - 22px);
+    width: 100%;
+    margin-top: 22px;
+}
+
+div.eisenhowerOption {
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 50%;
+}
+
+div.eisenhowerOption#eisenhowerA {
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
+    border-top-left-radius: 13px;
+}
+div.eisenhowerOption#eisenhowerB {
+    border-left: 1px solid white;
+    border-bottom: 1px solid white;
+    border-top-right-radius: 13px;
+}
+div.eisenhowerOption#eisenhowerC {
+    border-right: 1px solid white;
+    border-top: 1px solid white;
+    border-bottom-left-radius: 13px;
+}
+div.eisenhowerOption#eisenhowerD {
+    border-left: 1px solid white;
+    border-top: 1px solid white;
+    border-bottom-right-radius: 13px;
+}
+
+button.btn-flat {
+    background-color: transparent;
+    color: white;
+}
+
+button.btn-flat.notEvent {
+    text-decoration: line-through;
+}
+
+button.btn-flat.Event {
+    text-decoration: none;
+}
+
+div.createTask button.btn-flat, div.createTask button.btn {
+    padding: 13px;
+    border-radius: 13px;
+    height: 46px;
+    min-width: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+div.createTask button.btn-flat {
+    padding: 0;
+    border-radius: 2px;
+}
+
+button.btn-flat:focus {
+    background-color: transparent;
+}
+
+.waves-effect.waves-grey .waves-ripple {
+    background-color: rgba(97, 97, 97, 1);
+}
+
+div.input-fields1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+div.input-block1 > *:not(:first-child) {
+    margin: 13px 0 0 0;
+}
+
+div.input-fields1 > *:not(:first-child) {
+    margin: 0 0 0 13px;
+}
+
+input#taskTitle {
+    width: 100%;
+}
+
+div.createTask div.input-block1 input.required, div.createTask p.required#eisenhowerTitle {
+    border-bottom-color: #ff8a80;
+}
+
+div.createTask input:not(.browser-default), div.createTask p#eisenhowerTitle {
+    border-bottom-color: #424242;
+}
+
+div.createTask input:not(.browser-default):focus:not([readonly]) {
+    border-bottom: 1px solid #616161;
+    box-shadow: 0 1px 0 0 #616161;
+}
+
+div.createTask button.btn-flat.notEvent#isEvent:hover {
+    color: rgb(97,97,97) !important;
+}
+
+div.createTask div.input-block1 input {
+    margin-bottom: 0;
+}
+
+div.createTask > *:last-child {
+    margin-top: 13px;
 }
