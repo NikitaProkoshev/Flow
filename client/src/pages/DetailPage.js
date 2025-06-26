@@ -3,26 +3,26 @@ import { useParams } from 'react-router-dom'
 import {useHttp} from "../hooks/http.hook";
 import {AuthContext} from "../context/AuthContext";
 import {Loader} from "../components/Loader";
-import {LinkCard} from "../components/LinkCard";
+import {TaskCard} from "../components/TaskCard";
 
 export const DetailPage = () => {
     const {token} = useContext(AuthContext);
     const {request, loading} = useHttp()
-    const [link, setLink] = useState(null)
-    const linkId = useParams().id
+    const [task, setTask] = useState(null)
+    const taskId = useParams().id
 
-    const getLink = useCallback( async () => {
+    const getTask = useCallback( async () => {
         try {
-            const fetched = await request(`/api/link/${linkId}`, 'GET', null, {
+            const fetched = await request(`/api/task/${taskId}`, 'GET', null, {
                 Authorization: `Bearer ${token}`
             });
-            setLink(fetched);
+            setTask(fetched);
         } catch (e) {}
-    }, [token, linkId, request]);
+    }, [token, taskId, request]);
 
     useEffect(() => {
-        getLink()
-    }, [getLink]);
+        getTask()
+    }, [getTask]);
 
     if (loading) {
         return <Loader />
@@ -30,7 +30,7 @@ export const DetailPage = () => {
 
     return (
         <>
-            { !loading && link && <LinkCard link={link} />}
+            { !loading && task && <TaskCard task={task} />}
         </>
     )
 }

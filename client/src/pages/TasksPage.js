@@ -2,25 +2,25 @@ import React, {useCallback, useContext, useEffect, useState} from 'react'
 import {useHttp} from "../hooks/http.hook";
 import {AuthContext} from "../context/AuthContext";
 import {Loader} from "../components/Loader";
-import {LinksList} from "../components/LinksList";
+import {TasksList} from "../components/TasksList";
 
-export const LinksPage = () => {
-    const [links, setLinks] = useState([]);
+export const TasksPage = () => {
+    const [tasks, setTasks] = useState([]);
     const {loading, request} = useHttp();
     const {token} = useContext(AuthContext);
 
-    const fetchLinks = useCallback( async () => {
+    const fetchTasks = useCallback( async () => {
         try{
-            const fetched = await request('/api/link', 'GET', null, {
+            const fetched = await request('/api/task', 'GET', null, {
                 Authorization: `Bearer ${token}`
             });
-            setLinks(fetched);
+            setTasks(fetched);
         } catch (e) {}
     }, [token, request]);
 
     useEffect(() => {
-        fetchLinks()
-    }, [fetchLinks]);
+        fetchTasks()
+    }, [fetchTasks]);
 
     if (loading) {
         return <Loader />
@@ -28,7 +28,7 @@ export const LinksPage = () => {
 
     return (
         <>
-            {!loading && <LinksList links={links} />}
+            {!loading && <TasksList tasks={tasks} />}
         </>
     )
 }
