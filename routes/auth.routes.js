@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken")
 const config = require("config")
 const {check, validationResult } = require("express-validator")
 const User = require("../models/user")
+const Task = require("../models/task");
+const shortid = require("shortid");
 const router = Router()
 
 // /api/auth/register
@@ -24,20 +26,18 @@ router.post(
                     message: "Некорректные данные при регистрации"
                 })
             }
-
             const {email, password} = req.body
 
             const candidate = await User.findOne({email})
-
-            if (candidate) {
-                return res.status(400).json({message:"Такой пользователь уже существует!"})
-            }
-
+            if (candidate) { return res.status(400).json({message:"Такой пользователь уже существует!"}) }
             const hashedPassword = await bcrypt.hash(password, 12)
             const user = new User({email, password: hashedPassword})
 
-            await user.save()
+            const task = new Task({ code: shortid.generate(), epic: 'Привычки', status: false, title: 'Привычки_шаблон', description: 'Привычки', isEvent: false,
+                dateStart: new Date(), dateEnd: new Date('2099-12-31'), eisenhower: 'A', subTasks: [], owner: user._id });
 
+            await task.save()
+            await user.save()
             res.status(201).json({message: "Пользователь создан!"})
 
         } catch(e) {

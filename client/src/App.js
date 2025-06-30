@@ -10,7 +10,7 @@ import {Loader} from './components/Loader'
 function App() {
     const {token, login, logout, userId, ready} = useAuth();
     const isAuthenticated = !!token;
-    const routes = useRoutes(isAuthenticated)
+    const routes = useRoutes(isAuthenticated);
 
     if (!ready) {
         return <Loader />

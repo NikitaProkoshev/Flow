@@ -1,5 +1,6 @@
 @import "~materialize-css/dist/css/materialize.min.css";
 
+/* Общие стили */
 html, body, div#root {
     height:100%;
 }
@@ -10,31 +11,283 @@ html {
 
 h1, h2, h3, h4, h5, h6, p, input, select, textarea {
     color: white;
-    font-size: 16px;
+    font-size: 22px;
+    margin: 0;
+    padding: 0;
 }
 
-.input-fields>label {
-    transform: translateY(-13px) scale(0.8) !important;
-    transform-origin: 0 0 !important;
+div.toast.OK {
+    background-color: rgb(0, 185, 86);
 }
 
-input.yellow-input {
-    border-bottom: 1px solid #fff!important;
-    box-shadow: 0 1px 0 0 #fff!important;
+div.toast.Warning {
+    background-color: rgb(255, 235, 59);
+    color: #212121;
 }
 
-input.yellow-input:focus {
-    border-bottom: 1px solid #ffeb3b!important;
-    box-shadow: 0 1px 0 0 #ffeb3b!important;
+.waves-effect.waves-grey .waves-ripple {
+    background-color: rgb(97, 97, 97);
 }
 
-input.yellow-input + label {
-    color: #fff!important;
+.waves-effect.waves-МегаФон {
+    color: rgb(0, 185, 86);
+    border-bottom-color: rgb(0, 185, 86);
 }
 
-input.yellow-input:focus + label {
-    color: #ffeb3b!important;
+.waves-effect.waves-МегаФон .waves-ripple {
+    background-color: rgb(0, 185, 86);
 }
+
+.waves-effect.waves-РУДН {
+    color: rgb(0, 121, 194);
+    border-bottom-color: rgb(0, 121, 194);
+}
+
+.waves-effect.waves-РУДН .waves-ripple {
+    background-color: rgb(0, 121, 194);
+}
+
+.waves-effect.waves-Личное {
+    color: rgb(149, 117, 205);
+    border-bottom-color: rgb(149, 117, 205);
+}
+
+.waves-effect.waves-Личное .waves-ripple {
+    background-color: rgb(149, 117, 205);
+}
+
+.waves-effect.waves-Семья {
+    color: rgb(255, 241, 118);
+    border-bottom-color: rgb(255, 241, 118);
+}
+
+.waves-effect.waves-Семья .waves-ripple {
+    background-color: rgb(255, 241, 118);
+}
+
+.waves-effect.waves-Уля {
+    color: rgb(240, 98, 146);
+    border-bottom-color: rgb(240, 98, 146);
+}
+
+.waves-effect.waves-Уля .waves-ripple {
+    background-color: rgb(240, 98, 146);
+}
+
+
+
+/* Стили для TasksPage */
+div#tasksDashBoard {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+div#tasksDashBoard #block1 {
+    width: calc(100%/3*2);
+    margin: 22px 11px 22px 22px;
+}
+
+div#tasksDashBoard #block1 h2 {
+    font-size: 32px;
+    line-height: 46px;
+}
+
+div#tasksDashBoard #block1 button.btn-flat#createTask {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+div#tasksDashBoard #block1 button.btn-flat#createTask i {
+    margin-right: 5px;
+}
+
+div#tasksDashBoard #block2 {
+    width: calc(100%/3);
+    margin: 22px 22px 22px 11px;
+}
+
+div.tasksList div.task, div.habitsPage div.habitsDay {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border-radius: 13px;
+    margin: 13px;
+    background-color: #212121;
+}
+
+div.task div.taskBlock1 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}
+
+div.task div.taskBlock2 {
+    margin-left: 95px;
+}
+
+div.tasksList div.task * { line-height: 32px; }
+
+/* Стили чекера задачи*/
+div.tasksList div.task div.taskCheckerBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    margin: 13px 6px 13px 13px;
+}
+
+div.tasksList div.task div.taskCheckerBlock label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+}
+
+div.tasksList div.task div.taskCheckerBlock label span {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+}
+
+div.taskCheckerBlock [type="checkbox"]+span:not(.lever):before {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+}
+
+div.taskCheckerBlock [type="checkbox"]:checked+span:not(.lever):before {
+    width: 18px;
+    height: 30px;
+    top: -2px;
+}
+
+/* Стили информации задачи */
+div.tasksList div.task div.taskInfoBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: calc(100% - 51px);
+    margin: 13px 7px 13px 7px;
+}
+
+div.tasksList div.task div.taskInfoBlock > *:not(:first-child) { margin: 13px 0 0 0; }
+
+div.tasksList div.task div.taskSubBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 32px;
+}
+
+div.tasksList div.task div.taskSubBlock > *:first-child {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 24px;
+}
+
+div.tasksList div.task div.taskSubBlock#subBlock3 .subTask > *:not(:first-child) {
+    margin-left: 13px;
+}
+
+div.tasksList div.task div.taskSubBlock > *:not(:first-child) { margin: 0 0 0 13px; }
+
+/* Стили кнопки редактирования задачи */
+div.tasksList div.task div.taskEditBlock, div.habitsDay div.habitsInfoBlock i.material-icons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    margin: 0 13px 0 6px;
+}
+
+div.tasksList div.task div.taskEditBlock i.material-icons, div.habitsDay div.habitsInfoBlock i.material-icons {
+    color: white;
+    font-size: 32px;
+}
+
+
+/* Стили подзадачи */
+div.task div.taskBlock2 div.subTask label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 22px;
+    height: 22px;
+}
+
+div.task div.taskBlock2 div.subTask label span {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+}
+
+div.task div.taskBlock2 div.subTask [type="checkbox"]+span:not(.lever):before {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+}
+
+div.task div.taskBlock2 div.subTask [type="checkbox"]:checked+span:not(.lever):before {
+    width: 12px;
+    height: 21px;
+    top: -1px;
+    left: -3px;
+}
+
+div.task div.taskBlock2 div.subTask p {
+    margin-left: 13px;
+}
+
+/* Стили привычек */
+div.habitsDay > * {
+    margin: 13px 13px 0 13px;
+}
+
+div.habitsDay > *:not(:first-child) {
+    margin-bottom: 13px;
+}
+
+div.habitsDay div.habitsInfoBlock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: calc(100% - 13px);
+
+}
+
+div.habitsDay div.habitsInfoBlock h2 {
+    line-height: 32px;
+    width: calc(100% - 51px);
+}
+
+div.habitsDay div.habitsInfoBlock i.material-icons {
+    margin-right: 0;
+}
+
+div.habitsDay div.habitsSubTasksBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: calc(100% - 26px);
+    margin-left: 13px;
+}
+
+div.habitsDay div.habitsSubTasksBlock div.noHabitsMessage {
+    line-height: 32px;
+    font-size: 22px;
+    color: white;
+}
+
+
+
+
 
 
 div.modal#create {
@@ -45,9 +298,17 @@ div.createTask {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: space-between;
     color: white;
-    margin: 22px;
+    margin: 13px;
+    background-color: #212121;
+    border-radius: 13px;
+    padding: 13px;
+}
+
+div.createTask > button {
+    margin-top: 13px;
+    margin-left: 22px;
 }
 
 .input-block0 {
@@ -58,7 +319,7 @@ div.createTask {
 .input-block0 > * {
     width: 20%;
     height:100%;
-    border-bottom: 1px solid #00B956;
+    border-bottom: 1px solid #424242;
 }
 
 .input-block0 .epicIcon {
@@ -71,28 +332,66 @@ div.createTask {
 }
 
 .input-block1 {
-    width: calc((100% - 22px) /6*5);
+    width: calc((100% - 22px) /5*4);
     margin-right: 11px;
 }
 
+div.createTask div.input-block1 input, div.createTask div.input-block3 input {
+    margin-bottom: 0;
+}
+
+.input-block1 .input-fields3 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.input-block1 .input-fields3 > *:not(:first-child) {
+    margin-left: 13px;
+}
+
 .input-block2 {
-    width: calc((100% - 22px) /6);
+    width: calc((100% - 22px) /5);
     margin-left: 11px;
 }
 
-p#eisenhowerTitle {
+.input-block3 {
+    margin-left: 22px;
+    margin-top: 13px;
+    width: calc(100% - 22px);
+}
+
+div.input-block3 > *:not(:first-child) {
+    margin: 13px 0 0 0;
+    width: 100%;
+}
+
+div.input-block3 div.subTaskCheckerBlock {
+    margin: 0 13px 0 0;
+}
+
+div.input-block4 {
     display: flex;
-    justify-content: center;
-    line-height: 45px;
-    margin: 0;
-    border-bottom: 1px solid #424242;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-left: 22px;
+    margin-top: 13px;
+}
+
+div.subTask {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    height: 46px;
 }
 
 div#eisenhowerMatrix {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    height: calc(100% - 46px - 22px);
+    height: calc(100% - 22px);
     width: 100%;
     margin-top: 22px;
 }
@@ -127,6 +426,7 @@ div.eisenhowerOption#eisenhowerD {
 }
 
 button.btn-flat {
+    min-width: 45px;
     background-color: transparent;
     color: white;
 }
@@ -158,9 +458,7 @@ button.btn-flat:focus {
     background-color: transparent;
 }
 
-.waves-effect.waves-grey .waves-ripple {
-    background-color: rgba(97, 97, 97, 1);
-}
+
 
 div.input-fields1 {
     display: flex;
@@ -181,7 +479,7 @@ input#taskTitle {
 }
 
 div.createTask div.input-block1 input.required, div.createTask p.required#eisenhowerTitle {
-    border-bottom-color: #ff8a80;
+    border-bottom-color: #e0e0e0;
 }
 
 div.createTask input:not(.browser-default), div.createTask p#eisenhowerTitle {
@@ -201,8 +499,7 @@ div.createTask div.input-block1 input {
     margin-bottom: 0;
 }
 
-div.createTask > *:last-child {
-    margin-top: 13px;
+button.btn {
+    background-color: #e0e0e0;
+    color: #212121 !important;
 }
-
-
