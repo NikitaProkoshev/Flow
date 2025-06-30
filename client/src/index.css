@@ -108,7 +108,7 @@ div#tasksDashBoard #block2 {
     margin: 22px 22px 22px 11px;
 }
 
-div.tasksList div.task, div.habitsPage div.habitsDay {
+div.tasksList div.task, div.habitsPage div.habitsToday {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -198,7 +198,7 @@ div.tasksList div.task div.taskSubBlock#subBlock3 .subTask > *:not(:first-child)
 div.tasksList div.task div.taskSubBlock > *:not(:first-child) { margin: 0 0 0 13px; }
 
 /* Стили кнопки редактирования задачи */
-div.tasksList div.task div.taskEditBlock, div.habitsDay div.habitsInfoBlock i.material-icons {
+div.tasksList div.task div.taskEditBlock, div.habitsToday div.habitsInfoBlock i.material-icons {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -207,7 +207,7 @@ div.tasksList div.task div.taskEditBlock, div.habitsDay div.habitsInfoBlock i.ma
     margin: 0 13px 0 6px;
 }
 
-div.tasksList div.task div.taskEditBlock i.material-icons, div.habitsDay div.habitsInfoBlock i.material-icons {
+div.tasksList div.task div.taskEditBlock i.material-icons, div.habitsToday div.habitsInfoBlock i.material-icons {
     color: white;
     font-size: 32px;
 }
@@ -246,15 +246,15 @@ div.task div.taskBlock2 div.subTask p {
 }
 
 /* Стили привычек */
-div.habitsDay > * {
+div.habitsToday > * {
     margin: 13px 13px 0 13px;
 }
 
-div.habitsDay > *:not(:first-child) {
+div.habitsToday > *:not(:first-child) {
     margin-bottom: 13px;
 }
 
-div.habitsDay div.habitsInfoBlock {
+div.habitsToday div.habitsInfoBlock {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -262,16 +262,16 @@ div.habitsDay div.habitsInfoBlock {
 
 }
 
-div.habitsDay div.habitsInfoBlock h2 {
+div.habitsToday div.habitsInfoBlock h2 {
     line-height: 32px;
     width: calc(100% - 51px);
 }
 
-div.habitsDay div.habitsInfoBlock i.material-icons {
+div.habitsToday div.habitsInfoBlock i.material-icons {
     margin-right: 0;
 }
 
-div.habitsDay div.habitsSubTasksBlock {
+div.habitsToday div.habitsSubTasksBlock {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -279,7 +279,7 @@ div.habitsDay div.habitsSubTasksBlock {
     margin-left: 13px;
 }
 
-div.habitsDay div.habitsSubTasksBlock div.noHabitsMessage {
+div.habitsToday div.habitsSubTasksBlock div.noHabitsMessage {
     line-height: 32px;
     font-size: 22px;
     color: white;
@@ -466,7 +466,7 @@ div.input-fields1 {
     align-items: center;
 }
 
-div.input-block1 > *:not(:first-child) {
+div.input-block1 > * {
     margin: 13px 0 0 0;
 }
 

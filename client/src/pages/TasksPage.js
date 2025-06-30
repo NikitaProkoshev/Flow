@@ -5,6 +5,7 @@ import {TasksList} from "../components/TasksList";
 import {dateToString} from "../methods";
 import {CreateTask} from "../components/CreateTask";
 import {Habits} from "../components/Habits";
+import {todayString, yesterdayString} from "../methods";
 
 export const TasksPage = () => {
     const [tasks, setTasks] = useState([]);
@@ -17,11 +18,7 @@ export const TasksPage = () => {
     const today = new Date(), week = new Date(), nextWeek = new Date();
     week.setDate(week.getDate() + 7);
     nextWeek.setDate(nextWeek.getDate() + 14);
-    const todayString = new Date().toLocaleDateString('ru-RU');
-    const [day, month, year] = todayString.split('.');
-    var yesterday = new Date();
-    yesterday.setDate(new Date(`${year}-${month}-${day}`).getDate() - 1);
-    const yesterdayString = yesterday.toLocaleDateString('ru-RU');
+
 
     const fetchTasks = useCallback( async () => {
         try{
@@ -55,7 +52,7 @@ export const TasksPage = () => {
                         <TasksList state={[taskEdit, setTaskEdit]} tasks={tasks.filter(task => !task.status && task.epic!== 'Привычки' && dateToString(task.dateEnd) > dateToString(week) && dateToString(task.dateEnd) <= dateToString(nextWeek))}/>
                     </div>
                     <div id="block2">
-                        <Habits state={[taskEdit, setTaskEdit]} tasks={tasks.filter(task => task.epic === 'Привычки' && ['Привычки_' + todayString, 'Привычки_' + yesterdayString].includes(task.title) && !task.status)}/>
+                        <Habits state={[taskEdit, setTaskEdit]} tasks={tasks.filter(task => task.epic === 'Привычки' && ['Привычки_' + todayString, 'Привычки_' + yesterdayString, 'Привычки_шаблон'].includes(task.title) && !task.status)}/>
                     </div>
                 </>
             }
