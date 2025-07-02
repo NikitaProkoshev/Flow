@@ -8,7 +8,6 @@ const shortid = require("shortid");
 
 router.post('/create', auth, async (req, res) => {
     try {
-        const baseUrl = config.get("baseUrl");
         const {epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
         const code = shortId.generate();
         const existing = await Task.findOne({ title })
@@ -27,30 +26,65 @@ router.post('/create', auth, async (req, res) => {
 
 router.put('/update/:id', async (req, res) => {
     try {
-        const baseUrl = config.get("baseUrl");
         const {_id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
         const existing = await Task.findOne({ title })
         if (existing !== null) { if (existing.length > 1 || existing._id.toString() !== _id) { return res.json({ task: existing }) } }
-        console.log("A");
 
         const updatedTask = new Task({
             _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks
         });
-
-        console.log("B");
 
         const task = await Task.findByIdAndUpdate(
             _id,
             { $set: updatedTask }, // Новые данные
             { new: true } // Вернуть обновлённый документ
         );
-        console.log("C");
-        console.log("D");
 
         res.status(201).json({ task })
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }) }
+});
+
+router.put('/check/:id', async (req, res) => {
+    try {
+        console.log("AAAAAAAAAA");
+        const {_id, status} = req.body;
+
+        console.log("AAA");
+
+        const checkingTask = await Task.findOne({ _id });
+
+        console.log(checkingTask);
+
+        const  { epic, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks } = checkingTask;
+
+        const checkedTask = new Task({
+            _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks
+        });
+
+        console.log(checkedTask);
+
+        const task = await Task.findByIdAndUpdate(
+            _id,
+            { $set: checkedTask }, // Новые данные
+            { new: true } // Вернуть обновлённый документ
+        );
+
+        res.status(201).json({ checkedTask })
+    } catch (err) { res.status(500).json({ error: err.message }) }
+});
+
+router.put('/habits/:id', async (req, res) => {
+    try {
+        const {_id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+
+        const updatedTask = new Task({
+            _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks
+        });
+
+        const task = await Task.findByIdAndUpdate( _id, { $set: updatedTask }, { new: true } );
+
+        res.status(201).json({ task })
+    } catch (err) { res.status(500).json({ error: err.message }) }
 });
 
 router.get('/', auth, async (req, res) => {
@@ -66,7 +100,7 @@ router.get('/', auth, async (req, res) => {
             await task.save()
         }
 
-        const tasks = await Task.find({ owner: req.user.userId, status: false});
+        const tasks = await Task.find({ owner: req.user.userId });
         res.json(tasks);
     } catch(e) { res.status(500).json({message: 'Что-то пошло не так! Попробуйте сноваюsss'}) }
 });

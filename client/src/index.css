@@ -10,10 +10,19 @@ html {
 }
 
 h1, h2, h3, h4, h5, h6, p, input, select, textarea {
-    color: white;
+    color: #eeeeee;
     font-size: 22px;
     margin: 0;
     padding: 0;
+    cursor:  default;
+}
+
+i.material-icons.buttonIcon {
+    cursor: pointer;
+}
+
+label input[disabled][type="checkbox"]+span:not(.lever) {
+    cursor: default;
 }
 
 div.toast.OK {
@@ -30,12 +39,12 @@ div.toast.Warning {
 }
 
 .waves-effect.waves-МегаФон {
-    color: rgb(0, 185, 86);
+    color: rgba(0, 185, 86);
     border-bottom-color: rgb(0, 185, 86);
 }
 
 .waves-effect.waves-МегаФон .waves-ripple {
-    background-color: rgb(0, 185, 86);
+    background-color: rgba(0, 185, 86,1);
 }
 
 .waves-effect.waves-РУДН {
@@ -108,21 +117,32 @@ div#tasksDashBoard #block2 {
     margin: 22px 22px 22px 11px;
 }
 
-div.tasksList div.task, div.habitsPage div.habitsToday {
+div.tasksList div.task, div.habitsPage div.frontHabits, div.habitsPage div.backHabits, div.habitsEdit {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     border-radius: 13px;
-    margin: 13px;
-    background-color: #212121;
+    margin: 13px 0 13px 13px;
+    background-color: rgba(33,33,33,0.75);
 }
+
+div.tasksList div.task.doneTask {
+    filter: grayscale(1);
+    background-color: rgba(33,33,33,0.22);
+}
+
+div.tasksList div.task.doneTask * { color: #bdbdbd; }
 
 div.task div.taskBlock1 {
     display: flex;
     flex-direction: row;
     align-items: center;
     width: 100%;
+    background-color: #212121;
+    border-radius: 13px;
 }
+
+div.tasksList div.task.doneTask div.taskBlock1 { background-color: rgba(33, 33, 33, 0); }
 
 div.task div.taskBlock2 {
     margin-left: 95px;
@@ -166,6 +186,30 @@ div.taskCheckerBlock [type="checkbox"]:checked+span:not(.lever):before {
     top: -2px;
 }
 
+/* Переопределяем анимацию waves */
+task.waves-effect.waves-light .waves-ripple {
+    animation: waves-ripple 3s ease-out;
+}
+
+@keyframes waves-ripple {
+    0% {
+        transform: scale(0.1);
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(10);
+        opacity: 1;
+    }
+}
+
+/* Замедляем исчезновение основного класса */
+task.waves-effect {
+    transition: opacity 3s ease-out !important;
+}
+
 /* Стили информации задачи */
 div.tasksList div.task div.taskInfoBlock {
     display: flex;
@@ -198,7 +242,7 @@ div.tasksList div.task div.taskSubBlock#subBlock3 .subTask > *:not(:first-child)
 div.tasksList div.task div.taskSubBlock > *:not(:first-child) { margin: 0 0 0 13px; }
 
 /* Стили кнопки редактирования задачи */
-div.tasksList div.task div.taskEditBlock, div.habitsToday div.habitsInfoBlock i.material-icons {
+div.tasksList div.task div.taskEditBlock, div.frontHabits div.habitsInfoBlock i.material-icons {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -207,14 +251,16 @@ div.tasksList div.task div.taskEditBlock, div.habitsToday div.habitsInfoBlock i.
     margin: 0 13px 0 6px;
 }
 
-div.tasksList div.task div.taskEditBlock i.material-icons, div.habitsToday div.habitsInfoBlock i.material-icons {
+div.tasksList div.task div.taskEditBlock i.material-icons, div.frontHabits div.habitsInfoBlock i.material-icons {
     color: white;
     font-size: 32px;
 }
 
 
 /* Стили подзадачи */
-div.task div.taskBlock2 div.subTask label {
+div.task div.taskBlock2 div.subTask label,
+div.frontHabits div.habitsSubTasksBlock div.subTask label,
+div.backHabitsInfo div.subTask label {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -222,39 +268,91 @@ div.task div.taskBlock2 div.subTask label {
     height: 22px;
 }
 
-div.task div.taskBlock2 div.subTask label span {
+div.task div.taskBlock2 div.subTask label span,
+div.frontHabits div.habitsSubTasksBlock div.subTask label span,
+div.backHabitsInfo div.subTask label span {
     width: 22px;
     height: 22px;
     padding: 0;
 }
 
-div.task div.taskBlock2 div.subTask [type="checkbox"]+span:not(.lever):before {
+div.task div.taskBlock2 div.subTask [type="checkbox"]+span:not(.lever):before,
+div.frontHabits div.habitsSubTasksBlock div.subTask [type="checkbox"]+span:not(.lever):before,
+div.backHabitsInfo div.subTask [type="checkbox"]+span:not(.lever):before {
     width: 22px;
     height: 22px;
     margin: 0;
 }
 
-div.task div.taskBlock2 div.subTask [type="checkbox"]:checked+span:not(.lever):before {
+div.task div.taskBlock2 div.subTask [type="checkbox"]:checked+span:not(.lever):before,
+div.frontHabits div.habitsSubTasksBlock div.subTask [type="checkbox"]:checked+span:not(.lever):before,
+div.backHabitsInfo div.subTask [type="checkbox"]:checked+span:not(.lever):before {
     width: 12px;
     height: 21px;
     top: -1px;
     left: -3px;
 }
 
-div.task div.taskBlock2 div.subTask p {
+div.task div.taskBlock2 div.subTask p,
+div.frontHabits div.habitsSubTasksBlock div.subTask p,
+div.backHabitsInfo div.subTask p {
     margin-left: 13px;
 }
 
 /* Стили привычек */
-div.habitsToday > * {
+div#block2 > h2 {
+    font-size: 32px;
+    line-height: 46px;
+}
+
+div.habitsPage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+}
+
+div.habitsPage div.backHabits {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+}
+
+div.backHabitsInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+div.backHabitsInfo div.subTask {
+    width: auto;
+    margin-left: 13px;
+}
+
+div.backHabits i {
+    height: 32px;
+    width: 32px;
+    margin: 13px 8px;
+    font-size: 32px;
+    color: white;
+}
+
+div#block2 div.frontHabits {
+    margin: 0;
+    width: 100%;
+    box-shadow: -8px 0 17px 2px rgba(33,33,33,0.14),-3px 0 14px 2px rgba(33,33,33,0.12),-5px 0 5px -3px rgba(33,33,33,0.2);
+}
+
+div.frontHabits > * {
     margin: 13px 13px 0 13px;
 }
 
-div.habitsToday > *:not(:first-child) {
+div.frontHabits > *:not(:first-child) {
     margin-bottom: 13px;
 }
 
-div.habitsToday div.habitsInfoBlock {
+div.frontHabits div.habitsInfoBlock {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -262,16 +360,16 @@ div.habitsToday div.habitsInfoBlock {
 
 }
 
-div.habitsToday div.habitsInfoBlock h2 {
+div.frontHabits div.habitsInfoBlock h2 {
     line-height: 32px;
     width: calc(100% - 51px);
 }
 
-div.habitsToday div.habitsInfoBlock i.material-icons {
+div.frontHabits div.habitsInfoBlock i.material-icons {
     margin-right: 0;
 }
 
-div.habitsToday div.habitsSubTasksBlock {
+div.frontHabits div.habitsSubTasksBlock {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -279,7 +377,7 @@ div.habitsToday div.habitsSubTasksBlock {
     margin-left: 13px;
 }
 
-div.habitsToday div.habitsSubTasksBlock div.noHabitsMessage {
+div.frontHabits div.habitsSubTasksBlock div.noHabitsMessage {
     line-height: 32px;
     font-size: 22px;
     color: white;

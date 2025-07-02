@@ -22,7 +22,7 @@ export const CreateTask = ({ state, task={} }) => {
     const [subTasks, setSubTasks] = useState(task.subTasks || []);
     const [editing, setEditing] = useState(true);
 
-    const epic_to_color = {"МегаФон": "rgb(0, 185, 86)", "РУДН": "rgb(0, 121, 194)", "Личное": "rgb(149, 117, 205)", "Семья": "rgb(255, 241, 118)", "Уля": "rgb(240, 98, 146)"}
+    const epic_to_color = {"МегаФон": "rgb(0, 185, 86)", "РУДН": "rgb(0, 121, 194)", "Личное": "rgb(149, 117, 205)", "Семья": "rgb(255, 241, 118)", "Уля": "rgb(240, 98, 146)", "ФК_Краснодар": "rgb(0, 73, 35)"}
 
     useEffect(() => {
         window.M.updateTextFields()
@@ -135,11 +135,13 @@ export const CreateTask = ({ state, task={} }) => {
             <div className="input-block0">
                 <button className="btn-flat waves-effect epicOption waves-grey grey-text text-darken-3" id="epicМегаФон"
                         onClick={epicChanging} value="МегаФон">
-                    <img className="epicIcon" id="epicМегаФонIcon" src="..\img\megafon.png" alt="МегаФон" width="22px" height="22px"/>Мегафон
+                    <img className="epicIcon" id="epicМегаФонIcon" src="..\img\megafon.png" alt="МегаФон" width="22px"
+                         height="22px"/>Мегафон
                 </button>
                 <button className="btn-flat waves-effect epicOption waves-grey grey-text text-darken-3" id="epicРУДН"
                         onClick={epicChanging} value="РУДН">
-                    <img className="epicIcon" id="epicРУДНIcon" src="..\img\rudn.png" alt="РУДН" width="22px" height="22px"/>РУДН
+                    <img className="epicIcon" id="epicРУДНIcon" src="..\img\rudn.png" alt="РУДН" width="22px"
+                         height="22px"/>РУДН
                 </button>
                 <button className="btn-flat waves-effect epicOption waves-grey grey-text text-darken-3" id="epicЛичное"
                         onClick={epicChanging} value="Личное">
@@ -153,10 +155,17 @@ export const CreateTask = ({ state, task={} }) => {
                         onClick={epicChanging} value="Уля">
                     <i className="material-icons epicIcon" id="epicУляIcon">person</i>Уля
                 </button>
+                <button className="btn-flat waves-effect epicOption waves-grey grey-text text-darken-3" id="epicФК_Краснодар"
+                        onClick={epicChanging} value="ФК_Краснодар">
+                    <img className="epicIcon" id="epicФК_КраснодарIcon" src="..\img\FC_Krasnodar.png" alt="ФК_Краснодар" width="22px"
+                         height="22px"/>ФК Краснодар
+                </button>
             </div>
             <div className="input-block1">
                 <div className="input-fields1">
-                    <button className="btn-flat waves-effect notEvent waves-grey grey-text text-darken-3" id="isEvent" style={{minWidth: "45px"}} onClick={eventChanging}>Event</button>
+                    <button className="btn-flat waves-effect notEvent waves-grey grey-text text-darken-3" id="isEvent"
+                            style={{minWidth: "45px"}} onClick={eventChanging}>Event
+                    </button>
                     <input
                         className="required"
                         id="taskTitle"
