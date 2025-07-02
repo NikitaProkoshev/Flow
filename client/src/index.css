@@ -1,6 +1,11 @@
 @import "~materialize-css/dist/css/materialize.min.css";
 
 /* Общие стили */
+:root {
+    --epicColor: #e0e0e0;
+    --unactiveColor: rgb(97, 97, 97);
+}
+
 html, body, div#root {
     height:100%;
 }
@@ -81,6 +86,15 @@ div.toast.Warning {
 
 .waves-effect.waves-Уля .waves-ripple {
     background-color: rgb(240, 98, 146);
+}
+
+.waves-effect.waves-epic {
+    color: var(--epicColor);
+    border-bottom-color: var(--epicColor);
+}
+
+.waves-effect.waves-epic .waves-ripple {
+    background-color: var(--epicColor);
 }
 
 
@@ -228,7 +242,7 @@ div.tasksList div.task div.taskSubBlock {
     height: 32px;
 }
 
-div.tasksList div.task div.taskSubBlock > *:first-child {
+div.tasksList div.task div.taskSubBlock:not(:nth-child(2)) > *:first-child {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -503,23 +517,23 @@ div.eisenhowerOption {
 }
 
 div.eisenhowerOption#eisenhowerA {
-    border-right: 1px solid white;
-    border-bottom: 1px solid white;
+    border-right: 1px solid var(--epicColor);
+    border-bottom: 1px solid var(--epicColor);
     border-top-left-radius: 13px;
 }
 div.eisenhowerOption#eisenhowerB {
-    border-left: 1px solid white;
-    border-bottom: 1px solid white;
+    border-left: 1px solid var(--epicColor);
+    border-bottom: 1px solid var(--epicColor);
     border-top-right-radius: 13px;
 }
 div.eisenhowerOption#eisenhowerC {
-    border-right: 1px solid white;
-    border-top: 1px solid white;
+    border-right: 1px solid var(--epicColor);
+    border-top: 1px solid var(--epicColor);
     border-bottom-left-radius: 13px;
 }
 div.eisenhowerOption#eisenhowerD {
-    border-left: 1px solid white;
-    border-top: 1px solid white;
+    border-left: 1px solid var(--epicColor);
+    border-top: 1px solid var(--epicColor);
     border-bottom-right-radius: 13px;
 }
 
@@ -576,8 +590,8 @@ input#taskTitle {
     width: 100%;
 }
 
-div.createTask div.input-block1 input.required, div.createTask p.required#eisenhowerTitle {
-    border-bottom-color: #e0e0e0;
+div.createTask div.input-block1 input.required {
+    border-bottom-color: var(--epicColor);
 }
 
 div.createTask input:not(.browser-default), div.createTask p#eisenhowerTitle {

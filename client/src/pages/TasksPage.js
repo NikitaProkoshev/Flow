@@ -66,7 +66,8 @@ export const TasksPage = () => {
             </div>
             <div id="block2">
                 <h2>Привычки</h2>
-                <Habits state={[taskEdit, setTaskEdit]}
+                <Habits editState={[taskEdit, setTaskEdit]}
+                        checkingState={[checkingTask, setCheckingTask]}
                         todayTask={tasks.filter(task => task.epic === 'Привычки' && task.title === ('Привычки_' + todayString))["0"]}
                         yesterdayTask={tasks.filter(task => task.epic === 'Привычки' && task.title === ('Привычки_' + yesterdayString))["0"]}
                         templateTask={tasks.filter(task => task.epic === 'Привычки' && task.title === 'Привычки_шаблон')["0"]}

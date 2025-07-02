@@ -4,9 +4,10 @@ import {useMessage} from "../hooks/message.hook";
 import {todayString, yesterdayString} from "../methods";
 import {AuthContext} from "../context/AuthContext";
 
-export const Habits = ({ state, todayTask, yesterdayTask, templateTask }) => {
+export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, templateTask }) => {
     const auth = useContext(AuthContext);
     const {request} = useHttp();
+    const {token} = useContext(AuthContext);
     const message = useMessage();
     const [subTasks, setSubTasks] = useState([]);
     const [frontDay, setFrontDay] = useState(todayString);
@@ -14,6 +15,19 @@ export const Habits = ({ state, todayTask, yesterdayTask, templateTask }) => {
     useEffect(() => {
         setSubTasks(templateTask?.subTasks);
     }, [todayTask]);
+
+    async function checkingSubTask(e, task, subTask){
+        const {_id, status, subTasks} = task;
+        let subTasksCopy = subTasks.slice(0);
+        var newSubTasks = [];
+        subTasksCopy.map(sT => {
+            if (sT._id === subTask._id) { newSubTasks.push({ name: subTask.name, status: !subTask.status, _id: subTask._id }) }
+            else { newSubTasks.push(sT) }
+        })
+        checkingState[1](_id);
+        const data = await request('/api/task/check/'+task._id, 'PUT', {_id: _id, status: status, subTasks: newSubTasks}, { Authorization: `Bearer ${token}`});
+        checkingState[1]('');
+    }
 
     function syncSubTasks(sourceTask, newTask){
         var resultTask = [];
@@ -41,7 +55,7 @@ export const Habits = ({ state, todayTask, yesterdayTask, templateTask }) => {
             const frontData = await request(`/api/task/habits/${todayTask._id}`, "PUT",{ ...todayTask, subTasks: newTodaySubTask },{Authorization: `Bearer ${auth.token}`});
             if (frontData) {
                 message("Задача обновлена!", "OK");
-                state[1]('');
+                editState[1]('');
             }
         } catch (e) {}
     }
@@ -53,7 +67,7 @@ export const Habits = ({ state, todayTask, yesterdayTask, templateTask }) => {
 
     return (
         <div className="habitsPage">
-            {(state[0] !== 'Привычки_шаблон')
+            {(editState[0] !== 'Привычки_шаблон')
                 ? <div className="backHabits">
                     { frontDay === todayString && <div className="backHabitsInfo">
                         <i className="material-icons buttonIcon" onClick={e => setFrontDay(yesterdayString)}>chevron_left</i>
@@ -66,14 +80,14 @@ export const Habits = ({ state, todayTask, yesterdayTask, templateTask }) => {
                     <div className="frontHabits">
                         <div className="habitsInfoBlock">
                             <h2>{frontDay === todayString ? "Сегодня" : "Вчера"}</h2>
-                            <i className="material-icons buttonIcon" onClick={e => state[1]('Привычки_шаблон')}>create</i>
+                            <i className="material-icons buttonIcon" onClick={e => editState[1]('Привычки_шаблон')}>create</i>
                         </div>
                         <div className="habitsSubTasksBlock">
                             {[0, undefined].includes(subTasks?.length)
                                 ? <div className="noHabitsMessage">Пока привычек нет(</div>
                                 : (frontDay === todayString ? todayTask : yesterdayTask).subTasks.map(subTask => (
                                     <div key={subTask.id} className="subTask">
-                                        <label><input type="checkbox" checked={subTask.status && "checked"}/><span></span></label>
+                                        <label><input type="checkbox" checked={subTask.status && "checked"} onClick={e => checkingSubTask(e, (frontDay === todayString ? todayTask : yesterdayTask), subTask)}/><span></span></label>
                                         <p>{subTask.name}</p>
                                     </div>
                                 ))}

@@ -16,9 +16,9 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
     // }
 
     async function checkingTask(e, task){
-        const {_id, status} = task;
+        const {_id, status, subTasks} = task;
         checkingState[1](_id);
-        const data = await request('/api/task/check/'+task._id, 'PUT', {_id: _id, status: !status}, { Authorization: `Bearer ${token}`});
+        const data = await request('/api/task/check/'+task._id, 'PUT', {_id: _id, status: !status, subTasks: subTasks}, { Authorization: `Bearer ${token}`});
         checkingState[1]('');
     }
 
@@ -31,7 +31,7 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
                                      style={{boxShadow: `-8px 0 17px 2px rgba(${epicToColor[task.epic]},0.14),-3px 0 14px 2px rgba(${epicToColor[task.epic]},0.12),-5px 0 5px -3px rgba(${epicToColor[task.epic]},0.2)`}}>
                             <div className="taskBlock1">
                                 <div className="taskCheckerBlock">
-                                    <label><input type="checkbox"
+                                    <label><input type="checkbox" checked={checkingState[0] === task._id ? "checked" : false}
                                                   onClick={e => checkingTask(e, task)}/><span></span></label>
                                 </div>
                                 <div className="taskInfoBlock">
@@ -45,7 +45,8 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
                                                    style={{color: "rgb(" + epicToColor[task.epic] + ")"}}>{epicToIcon[task.epic]}</i>)}
                                         <h3>{task.title}</h3>
                                     </div>
-                                    <div className="taskSubBlock" id="subBlock2">
+                                    {task.description && <div className="taskSubBlock" id="subBlock3"><></><h3>{task.description}</h3></div>}
+                                    <div className="taskSubBlock" id="subBlock3">
                                         <p>{task.eisenhower}</p>
                                         <p>{dateToString(task.dateStart)} ➜ {dateToString(task.dateEnd)}</p>
                                     </div>

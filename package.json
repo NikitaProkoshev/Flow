@@ -18,7 +18,6 @@
   "author": "Nikita Prokoshev <nprokoshev21@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@fullcalendar/react": "^6.1.18",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.12",
     "express": "^4.21.2",

@@ -46,8 +46,7 @@ router.put('/update/:id', async (req, res) => {
 
 router.put('/check/:id', async (req, res) => {
     try {
-        console.log("AAAAAAAAAA");
-        const {_id, status} = req.body;
+        const {_id, status, subTasks} = req.body;
 
         console.log("AAA");
 
@@ -55,7 +54,7 @@ router.put('/check/:id', async (req, res) => {
 
         console.log(checkingTask);
 
-        const  { epic, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks } = checkingTask;
+        const  { epic, title, description, isEvent, dateStart, dateEnd, eisenhower } = checkingTask;
 
         const checkedTask = new Task({
             _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks

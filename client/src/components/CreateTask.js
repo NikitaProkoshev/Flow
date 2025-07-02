@@ -27,25 +27,25 @@ export const CreateTask = ({ state, task={} }) => {
     useEffect(() => {
         window.M.updateTextFields()
 
-        if (epic !== '') {
-            let selected = document.getElementsByClassName("epicOption selected");
-            if (selected.length !== 0) {
-                selected[0].classList.add("waves-grey", "grey-text", "text-darken-3");
-                selected[0].classList.remove("waves-"+selected[0].id.slice(4), "selected");
-            }
-            let epicElem = document.getElementById('epic'+epic);
-            epicElem.classList.remove("waves-grey", "grey-text", "text-darken-3");
-            epicElem.classList.add("waves-"+epic, "selected");
-        }
-
-        let eventButton = document.querySelector('button#isEvent');
-        if (isEvent) {
-            eventButton.classList.add("Event", ("waves-" + (epic !== '' ? epic : "grey")), "grey-text")
-            eventButton.classList.remove("notEvent", "waves-grey", "grey-text", "text-darken-3")
-        } else {
-            eventButton.classList.add("notEvent", "waves-grey", "grey-text", "text-darken-2")
-            eventButton.classList.remove("Event", ("waves-" + (epic !== '' ? epic : "grey")), "teal-text")
-        }
+        // if (epic !== '') {
+        //     let selected = document.getElementsByClassName("epicOption selected");
+        //     if (selected.length !== 0) {
+        //         selected[0].classList.add("waves-grey", "grey-text", "text-darken-3");
+        //         selected[0].classList.remove("waves-"+selected[0].id.slice(4), "selected");
+        //     }
+        //     let epicElem = document.getElementById('epic'+epic);
+        //     epicElem.classList.remove("waves-grey", "grey-text", "text-darken-3");
+        //     epicElem.classList.add("waves-"+epic, "selected");
+        // }
+        //
+        // let eventButton = document.querySelector('button#isEvent');
+        // if (isEvent) {
+        //     eventButton.classList.add("Event", ("waves-" + (epic !== '' ? epic : "grey")), "grey-text")
+        //     eventButton.classList.remove("notEvent", "waves-grey", "grey-text", "text-darken-3")
+        // } else {
+        //     eventButton.classList.add("notEvent", "waves-grey", "grey-text", "text-darken-2")
+        //     eventButton.classList.remove("Event", ("waves-" + (epic !== '' ? epic : "grey")), "teal-text")
+        // }
 
         if (editing && task.eisenhower !== undefined) {
             setEditing(false);
@@ -81,8 +81,7 @@ export const CreateTask = ({ state, task={} }) => {
 
     const eventChanging = async event => {
         try {
-            if (isEvent && epic !== '') { document.querySelector("input.required#taskDateStart").style.borderBottomColor = '#424242' }
-            // else { document.querySelector("input#taskDateStart").style.borderBottomColor = (epic !== '' ? epic_to_color[epic] : '') }
+            // if (isEvent && epic !== '') { document.querySelector("input.required#taskDateStart").style.borderBottomColor = '#424242' }
             setIsEvent(!isEvent);
         } catch (e) {}
     }
@@ -91,21 +90,22 @@ export const CreateTask = ({ state, task={} }) => {
         try {
             let target = event.target;
             if (!target.classList.contains("epicOption")) { target = event.target.parentElement }
-            const wavesEpic = document.getElementsByClassName("waves-"+(epic !== '' ? epic : "grey"));
-            for (let elem of wavesEpic) {
-                if (elem.classList.contains("epicOption")) { continue }
-                elem.classList.add("waves-"+target.value);
-                elem.classList.remove("waves-"+epic);
-            }
-            const requireds = document.getElementsByClassName("required");
-            for (let required of requireds) { required.style.borderBottomColor = epic_to_color[target.value] }
-            document.querySelector("button.btn#createTask").style.backgroundColor = epic_to_color[target.value];
+            // const wavesEpic = document.getElementsByClassName("waves-"+(epic !== '' ? epic : "grey"));
+            // for (let elem of wavesEpic) {
+            //     if (elem.classList.contains("epicOption")) { continue }
+            //     elem.classList.add("waves-"+target.value);
+            //     elem.classList.remove("waves-"+epic);
+            // }
+            // const requireds = document.getElementsByClassName("required");
+            // for (let required of requireds) { required.style.borderBottomColor = epic_to_color[target.value] }
+            // document.querySelector("button.btn#createTask").style.backgroundColor = epic_to_color[target.value];
+            const root = document.documentElement;
+            root.style.setProperty('--epicColor', epic_to_color[target.value]);
             setEpic(target.value);
         } catch (e) {}
     }
 
     const eisenhowerSelecting = async event => {
-        console.log(event.target);
         try {
             const matrix = event.target.parentElement;
             if (!event.target.classList.contains('selected')) {
@@ -119,10 +119,11 @@ export const CreateTask = ({ state, task={} }) => {
     const addRemoveRequired = (target) => {
         if (target.value != null && target.value.length !== 0) {
             target.classList.remove('required');
-            target.style.borderBottomColor = "#424242";
+            // target.style.borderBottomColor = "#424242";
         } else {
             target.classList.add('required');
-            target.style.borderBottomColor = (epic !== '' ? epic_to_color[epic] : "#e0e0e0") }
+            // target.style.borderBottomColor = (epic !== '' ? epic_to_color[epic] : "#e0e0e0")
+        }
     }
 
     const newSubTask = () => {
@@ -163,7 +164,7 @@ export const CreateTask = ({ state, task={} }) => {
             </div>
             <div className="input-block1">
                 <div className="input-fields1">
-                    <button className="btn-flat waves-effect notEvent waves-grey grey-text text-darken-3" id="isEvent"
+                    <button className={"btn-flat waves-effect "+(isEvent ? "Event waves-epic" : "notEvent waves-grey grey-text text-darken-3")} id="isEvent"
                             style={{minWidth: "45px"}} onClick={eventChanging}>Event
                     </button>
                     <input
