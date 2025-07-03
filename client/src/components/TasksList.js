@@ -3,17 +3,12 @@ import {useHttp} from "../hooks/http.hook";
 import {AuthContext} from "../context/AuthContext";
 import {dateToString} from "../methods";
 import {CreateTask} from "./CreateTask";
+import {epicToIcon, epicToColor} from "../methods";
 
 export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
-    const epicToIcon = {"МегаФон": "megafon", "РУДН": "rudn", "Личное": "person_outline", "Семья": "people_outline", "Уля": "favorite_border", "ФК_Краснодар": "FC_Krasnodar"}
-    const epicToColor = {"МегаФон": "0, 185, 86", "РУДН": "0, 121, 194", "Личное": "149, 117, 205", "Семья": "255, 241, 118", "Уля": "240, 98, 146", "ФК_Краснодар": "0,73,35"}
     const {request} = useHttp();
     const {token} = useContext(AuthContext);
     const [showDone, setShowDone] = useState(false)
-
-    // if (!tasks.length) {
-    //     return <p className="center">Пока задач нет(</p>
-    // }
 
     async function checkingTask(e, task){
         const {_id, status, subTasks} = task;
@@ -28,7 +23,7 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
                 ? tasks.map(task => {
                     if (editState[0] !== task._id) {
                         return (<div className="task"
-                                     style={{boxShadow: `-8px 0 17px 2px rgba(${epicToColor[task.epic]},0.14),-3px 0 14px 2px rgba(${epicToColor[task.epic]},0.12),-5px 0 5px -3px rgba(${epicToColor[task.epic]},0.2)`}}>
+                                     style={{boxShadow: `-8px 0 17px 2px ${epicToColor[task.epic]}0.14),-3px 0 14px 2px ${epicToColor[task.epic]}0.12),-5px 0 5px -3px ${epicToColor[task.epic]}0.2)`}}>
                             <div className="taskBlock1">
                                 <div className="taskCheckerBlock">
                                     <label><input type="checkbox" checked={checkingState[0] === task._id ? "checked" : false}
@@ -42,14 +37,14 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
                                                  alt={task.epic} width="24px" height="24px"/>
                                             : (['Личное', 'Семья', 'Уля'].includes(task.epic) &&
                                                 <i className="material-icons epicIcon"
-                                                   style={{color: "rgb(" + epicToColor[task.epic] + ")"}}>{epicToIcon[task.epic]}</i>)}
+                                                   style={{color: epicToColor[task.epic] + "1)"}}>{epicToIcon[task.epic]}</i>)}
                                         <h3>{task.title}</h3>
                                     </div>
-                                    {task.description && <div className="taskSubBlock" id="subBlock3"><></><h3>{task.description}</h3></div>}
-                                    <div className="taskSubBlock" id="subBlock3">
+                                    <div className="taskSubBlock" id="subBlock2">
                                         <p>{task.eisenhower}</p>
                                         <p>{dateToString(task.dateStart)} ➜ {dateToString(task.dateEnd)}</p>
                                     </div>
+                                    {task.description && <div className="taskSubBlock" id="subBlock3"><></><h3>{task.description}</h3></div>}
                                 </div>
                                 <div className="taskEditBlock">
                                     <i className="material-icons buttonIcon" onClick={e => {
@@ -76,7 +71,7 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
                     <i className="large material-icons">{"arrow_drop_" + (showDone ? "up" : "down")}</i>{(showDone ? "Скрыть" : "Показать") + " выполненные задачи"}</button>
                 {(showDone && doneTasks.map(task =>
                         <div className="task doneTask"
-                             style={{boxShadow: `-8px 0 17px 2px rgba(${epicToColor[task.epic]},0.14),-3px 0 14px 2px rgba(${epicToColor[task.epic]},0.12),-5px 0 5px -3px rgba(${epicToColor[task.epic]},0.2)`}}>
+                             style={{boxShadow: `-8px 0 17px 2px ${epicToColor[task.epic]}0.14),-3px 0 14px 2px ${epicToColor[task.epic]}0.12),-5px 0 5px -3px ${epicToColor[task.epic]}0.2)`}}>
                             <div className="taskBlock1">
                                 <div className="taskCheckerBlock">
                                     <label><input type="checkbox" checked="checked"
@@ -90,7 +85,7 @@ export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
                                                  alt={task.epic} width="24px" height="24px"/>
                                             : (['Личное', 'Семья', 'Уля'].includes(task.epic) &&
                                                 <i className="material-icons epicIcon"
-                                                   style={{color: "rgb(" + epicToColor[task.epic] + ")"}}>{epicToIcon[task.epic]}</i>)}
+                                                   style={{color: epicToColor[task.epic] + "1)"}}>{epicToIcon[task.epic]}</i>)}
                                         <h3>{task.title}</h3>
                                     </div>
                                     <div className="taskSubBlock" id="subBlock2">

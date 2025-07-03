@@ -79,7 +79,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                     </div>}
                     <div className="frontHabits">
                         <div className="habitsInfoBlock">
-                            <h2>{frontDay === todayString ? "Сегодня" : "Вчера"}</h2>
+                            <h3>{frontDay === todayString ? "Сегодня" : "Вчера"}</h3>
                             <i className="material-icons buttonIcon" onClick={e => editState[1]('Привычки_шаблон')}>create</i>
                         </div>
                         <div className="habitsSubTasksBlock">

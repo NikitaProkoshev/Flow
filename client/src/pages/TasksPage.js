@@ -72,13 +72,13 @@ export const TasksPage = () => {
                         yesterdayTask={tasks.filter(task => task.epic === 'Привычки' && task.title === ('Привычки_' + yesterdayString))["0"]}
                         templateTask={tasks.filter(task => task.epic === 'Привычки' && task.title === 'Привычки_шаблон')["0"]}
                 />
-                {/*<FullCalendar plugins={[ dayGridPlugin ]}*/}
-                {/*              initialView="dayGridMonth"*/}
-                {/*              weekends={false}*/}
-                {/*              events={[*/}
-                {/*                  { title: 'event 1', date: '2019-04-01' },*/}
-                {/*                  { title: 'event 2', date: '2019-04-02' }*/}
-                {/*              ]}></FullCalendar>*/}
+                <FullCalendar plugins={[ dayGridPlugin ]}
+                              initialView="dayGridMonth"
+                              weekends={false}
+                              events={[
+                                  { title: 'event 1', start: '2025-07-03' },
+                                  { title: 'event 2', start: '2025-07-04' }
+                              ]}/>
             </div>
         </div>
     )
