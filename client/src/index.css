@@ -44,6 +44,11 @@ div.toast.Warning {
     color: #000000 !important;
 }
 
+.white-background {
+    background-color: #e0e0e0;
+    color: #000000 !important;
+}
+
 .epic-text { color: var(--epicColor) !important }
 
 
@@ -317,16 +322,39 @@ div.frontHabits div.habitsSubTasksBlock div.noHabitsMessage {
     color: #e0e0e0;
 }
 
-div.habitsPage div.subTask {
-    height: 32px;
-    margin-top: 13px;
-}
-
 div.frontHabits div.habitsSubTasksBlock div.subTask p {
     height: 32px;
 }
 
 div.habitsEdit { width: 100% }
+
+div.habitsEdit div.subTask {
+    height: 46px;
+}
+
+div.habitsEdit div.habitsSubTasksBlock > div:first-child {
+    margin-top: 0;
+}
+
+div.habitsEdit div.habitsSubTasksBlock > div:not(:first-child) {
+    margin-top: 13px;
+}
+
+div.habitsEdit div.subTask input {
+    margin-bottom: 0;
+}
+
+div.habitsEdit div.habitsButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+div.habitsEdit div.habitsButtons > div:last-child > *:not(:first-child) {
+    margin: 0 0 0 13px;
+}
 
 
 
@@ -408,6 +436,16 @@ div.input-block4 {
     justify-content: space-between;
     margin-left: 22px;
     margin-top: 13px;
+}
+
+div.input-block4 > div, div.habitsButtons > div:last-child {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+div.input-block4 > div > *:not(:first-child), div.habitsSubTasksBlock > div:last-child > *:not(:first-child) {
+    margin: 0 0 0 13px;
 }
 
 div.subTask {
@@ -516,3 +554,32 @@ div.createTask input:not(.browser-default):focus:not([readonly]) {
 div.createTask button.btn-flat.notEvent#isEvent:hover { color: rgb(97,97,97) !important }
 
 div.createTask div.input-block1 input { margin-bottom: 0 }
+
+
+/* Стили календаря */
+div.fc {
+    margin-left: 13px;
+}
+
+div.fc h2.fc-toolbar-title {
+    font-size: 32px;
+    line-height: 46px;
+}
+
+div.fc div.fc-toolbar.fc-header-toolbar {
+    margin-bottom: 13px;
+}
+
+div.fc table.fc-scrollgrid-liquid {
+    border-top-left-radius: 13px;
+    background-color: #212121;
+    border: none;
+}
+
+div.fc a.fc-col-header-cell-cushion, div.fc span.fc-timegrid-axis-cushion, div.fc div.fc-timegrid-slot-label-cushion {
+    color: #e0e0e0;
+}
+
+div.fc-theme-standard td, div.fc-theme-standard th {
+    border: 1px solid #5a5a5a;
+}

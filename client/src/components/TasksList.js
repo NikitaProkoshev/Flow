@@ -8,7 +8,8 @@ import {epicToIcon, epicToColor} from "../methods";
 export const TasksList = ({ editState, checkingState, tasks, doneTasks }) => {
     const {request} = useHttp();
     const {token} = useContext(AuthContext);
-    const [showDone, setShowDone] = useState(false)
+    const [showDone, setShowDone] = useState(false);
+    document.documentElement.style.setProperty('--fc-today-bg-color', "#272727");
 
     async function checkingTask(e, task){
         const {_id, status, subTasks} = task;

@@ -5,6 +5,7 @@
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.18",
     "@fullcalendar/react": "^6.1.18",
+    "@fullcalendar/timegrid": "^6.1.18",
     "@megafon/ui-core": "^8.9.0",
     "@megafon/ui-icons": "^3.11.1",
     "cra-template": "1.2.0",

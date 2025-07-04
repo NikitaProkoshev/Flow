@@ -5,9 +5,9 @@ import {TasksList} from "../components/TasksList";
 import {dateToString} from "../methods";
 import {CreateTask} from "../components/CreateTask";
 import {Habits} from "../components/Habits";
-import {todayString, yesterdayString} from "../methods";
+import {todayString, yesterdayString, epicToColor} from "../methods";
 import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
 
 export const TasksPage = () => {
     const [tasks, setTasks] = useState([]);
@@ -37,6 +37,16 @@ export const TasksPage = () => {
         }
         if (!creatingTask && taskEdit === '' && checkingTask === '') { fetchTasks() }
     }, [fetchTasks, creatingTask, taskEdit, checkingTask]);
+
+    function eventsToCalendar(events) {
+        var calendar = [];
+        events.map(event => {
+            console.log(event);
+            calendar.push({ title: event.title, start: event.dateStart, end: event.dateEnd, backgroundColor: epicToColor[event.epic]+"1)", textColor: "#212121"});
+        });
+        console.log(calendar);
+        return calendar
+    }
 
     return (
         <div id="tasksDashBoard">
@@ -72,13 +82,32 @@ export const TasksPage = () => {
                         yesterdayTask={tasks.filter(task => task.epic === 'Привычки' && task.title === ('Привычки_' + yesterdayString))["0"]}
                         templateTask={tasks.filter(task => task.epic === 'Привычки' && task.title === 'Привычки_шаблон')["0"]}
                 />
-                <FullCalendar plugins={[ dayGridPlugin ]}
-                              initialView="dayGridMonth"
-                              weekends={false}
-                              events={[
-                                  { title: 'event 1', start: '2025-07-03' },
-                                  { title: 'event 2', start: '2025-07-04' }
-                              ]}/>
+                <h2>Мероприятия</h2>
+                <FullCalendar plugins={[ timeGridPlugin ]}
+                              initialView="fourDay"
+                              locale="rulocale"
+                              slotMinTime="09:00:00"
+                              slotMaxTime="22:30:00"
+                              slotLabelFormat={{
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false  // 24-часовой формат
+                              }}
+                              dayHeaderFormat={{ weekday: 'long', month: '2-digit', day: '2-digit'}}
+                              views={{
+                                  fourDay: {
+                                      type: 'timeGrid',
+                                      duration: { days: 4 },
+                                      buttonText: '4 days'
+                                  }
+                              }}
+                              eventContent={(arg) => (
+                                  <div className="custom-event">
+                                      <input type="checkbox"></input>
+                                      <b>{arg.event.title}</b>
+                                  </div>
+                              )}
+                              events={eventsToCalendar(tasks.filter(task => task.isEvent))}/>
             </div>
         </div>
     )

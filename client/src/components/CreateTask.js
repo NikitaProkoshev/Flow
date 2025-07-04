@@ -14,10 +14,10 @@ export const CreateTask = ({ state, task={} }) => {
     const [title, setTitle] = useState(task.title || '');
     const [desc, setDesc] = useState(task.description || '');
     const [isEvent, setIsEvent] = useState(task.isEvent || false);
-    const [dateStart, setDateStart] = useState(task.dateStart !== undefined ? task.dateStart : dateToString(task.dateStart));
-    const [timeStart, setTimeStart] = useState(task.timeStart || undefined);
+    const [dateStart, setDateStart] = useState(task.dateStart !== undefined ? dateToString(task.dateStart) : undefined);
+    const [timeStart, setTimeStart] = useState(new Date(task.dateStart).toLocaleTimeString('ru-RU') !== "Invalid Date" ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
     const [dateEnd, setDateEnd] = useState(task.dateEnd !== undefined ? dateToString(task.dateEnd) : dateToString(new Date()));
-    const [timeEnd, setTimeEnd] = useState(task.timeEnd || undefined);
+    const [timeEnd, setTimeEnd] = useState(new Date(task.dateEnd).toLocaleTimeString('ru-RU') !== "Invalid Date" ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
     const [eisenhower, setEisenhower] = useState(task.eisenhower || '');
     const [subTasks, setSubTasks] = useState(task.subTasks || []);
     const [editing, setEditing] = useState(true);
@@ -33,12 +33,17 @@ export const CreateTask = ({ state, task={} }) => {
         }
     })
 
-    const pressHandler = async event => {
+    const cancelChanges = async event => {
+        if (task._id === undefined) { state(false) }
+        else { state('') }
+    }
+
+    const saveChanges = async event => {
         try {
             if (required === 0) {
                 if (task._id === undefined) {
                     const data = await request('/api/task/create', "POST",
-                        { epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart, dateEnd: dateEnd, eisenhower: eisenhower, subTasks: subTasks },
+                        { epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart.slice(0,11)+"T"+timeStart, dateEnd: dateEnd.slice(0,11)+"T"+timeEnd, eisenhower: eisenhower, subTasks: subTasks },
                         {Authorization: `Bearer ${auth.token}`});
                     if (data) {
                         message("Задача создана!", "OK");
@@ -46,7 +51,7 @@ export const CreateTask = ({ state, task={} }) => {
                     }
                 } else {
                     const data = await request(`/api/task/update/${task._id}`, "PUT",
-                        {_id: task._id, epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart, dateEnd: dateEnd, eisenhower: eisenhower, subTasks: subTasks },
+                        {_id: task._id, epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart.slice(0,11)+"T"+timeStart, dateEnd: dateEnd.slice(0,11)+"T"+timeEnd, eisenhower: eisenhower, subTasks: subTasks },
                         {Authorization: `Bearer ${auth.token}`});
                     if (data) {
                         message("Задача обновлена!", "OK");
@@ -106,22 +111,23 @@ export const CreateTask = ({ state, task={} }) => {
                         onChange={e => setDesc(e.target.value)}/>
                 </div>
                 <div className="input-fields3">
+                    {console.log(timeStart)}
                     <input
-                        className={isEvent ? (dateStart === "Invalid Date" ? "required" : "") : ""}
+                        className={(isEvent && dateStart === "Invalid Date") || timeStart !== undefined ? "required" : ""}
                         id="taskDateStart"
                         type="date"
                         value={dateStart}
                         min="2002-11-22"
                         max={dateEnd}
                         onChange={e => { setDateStart(e.target.value) }}
-                        style={{width: '101px'}}/>
+                        style={{width: 'auto'}}/>
                     <input
-                        className={isEvent ? (timeStart === undefined ? "required" : "") : ""}
+                        className={isEvent && timeStart === undefined ? "required" : ""}
                         id="taskTimeStart"
                         type="time"
                         value={timeStart}
                         onChange={e => { setTimeStart(e.target.value) }}
-                        style={{width: '72px'}}/>
+                        style={{width: 'auto'}}/>
                     <p>➜</p><input
                         className={dateEnd === "Invalid Date" ? "required" : ""}
                         id="taskDateEnd"
@@ -130,14 +136,14 @@ export const CreateTask = ({ state, task={} }) => {
                         min={dateStart === undefined ? "2002-11-22" : dateStart}
                         max="2099-12-31"
                         onChange={e => { setDateEnd(e.target.value) }}
-                        style={{width: '101px'}}/>
+                        style={{width: 'auto'}}/>
                     <input
-                        className={isEvent ? (timeEnd === undefined ? "required" : "") : ""}
+                        className={isEvent && timeEnd === undefined ? "required" : ""}
                         id="taskTimeEnd"
                         type="time"
                         value={timeEnd}
                         onChange={e => { setTimeEnd(e.target.value) }}
-                        style={{width: '72px'}}/>
+                        style={{width: 'auto'}}/>
                 </div>
             </div>
             <div className="input-block2">
@@ -164,7 +170,10 @@ export const CreateTask = ({ state, task={} }) => {
             </div>
             <div className="input-block4">
                 <button className="btn-flat waves-effect newSubTask waves-grey grey-text text-darken-3" id="createSubTask" onClick={newSubTask}><i className="large material-icons">add</i>Добавить подзадачу</button>
-                <button className={"btn waves-effect " + (required === 0 ? "waves-epic epic-background" : "someRequired")} id="createTask" onClick={pressHandler}>{task._id === undefined ? "Создать задачу" : "Обновить задачу"}</button>
+                <div>
+                    <button className="btn waves-effect waves-epic epic-background" id="createTask" onClick={cancelChanges}><i className="large material-icons">clear</i></button>
+                    <button className={"btn waves-effect " + (required === 0 ? "waves-epic epic-background" : "someRequired")} id="createTask" onClick={saveChanges}>{task._id === undefined ? "Создать задачу" : "Обновить задачу"}</button>
+                </div>
             </div>
         </div>
     )

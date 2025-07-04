@@ -43,15 +43,17 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
         return resultTask
     }
 
-    const pressHandler = async event => {
+    const cancelChanges = async event => {
+        editState[1]('');
+    }
+
+    const saveChanges = async event => {
         try {
             await request(`/api/task/habits/${templateTask._id}`, "PUT",{ ...templateTask, subTasks: subTasks },{Authorization: `Bearer ${auth.token}`});
             const newTask = subTasks.slice(0);
             const newYesterdaySubTask = syncSubTasks(yesterdayTask.subTasks, newTask);
-            console.log(newYesterdaySubTask);
             await request(`/api/task/habits/${yesterdayTask._id}`, "PUT",{ ...yesterdayTask, subTasks: newYesterdaySubTask },{Authorization: `Bearer ${auth.token}`});
             const newTodaySubTask = syncSubTasks(todayTask.subTasks, subTasks);
-            console.log(newTodaySubTask);
             const frontData = await request(`/api/task/habits/${todayTask._id}`, "PUT",{ ...todayTask, subTasks: newTodaySubTask },{Authorization: `Bearer ${auth.token}`});
             if (frontData) {
                 message("Задача обновлена!", "OK");
@@ -71,11 +73,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                 ? <div className="backHabits">
                     { frontDay === todayString && <div className="backHabitsInfo">
                         <i className="material-icons buttonIcon" onClick={e => setFrontDay(yesterdayString)}>chevron_left</i>
-                        {yesterdayTask && (yesterdayTask.subTasks.map(subTask => {
-                            return <div className="subTask">
-                                <label><input type="checkbox" checked={subTask.status && "checked"} disabled="disabled"/><span></span></label>
-                            </div>
-                        }))}
+                        {yesterdayTask && (yesterdayTask.subTasks.map(subTask => <div className="subTask"><label><input type="checkbox" checked={subTask.status && "checked"} disabled="disabled"/><span></span></label></div> ))}
                     </div>}
                     <div className="frontHabits">
                         <div className="habitsInfoBlock">
@@ -88,18 +86,12 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                                 : (frontDay === todayString ? todayTask : yesterdayTask).subTasks.map(subTask => (
                                     <div key={subTask.id} className="subTask">
                                         <label><input type="checkbox" checked={subTask.status && "checked"} onClick={e => checkingSubTask(e, (frontDay === todayString ? todayTask : yesterdayTask), subTask)}/><span></span></label>
-                                        <p>{subTask.name}</p>
-                                    </div>
-                                ))}
+                                        <p>{subTask.name}</p></div>))}
                         </div>
                     </div>
                     { frontDay === yesterdayString && <div className="backHabitsInfo">
                         <i className="material-icons buttonIcon" onClick={e => setFrontDay(todayString)}>chevron_right</i>
-                        {todayTask !== undefined && (todayTask.subTasks.map(subTask => {
-                            return <div className="subTask">
-                                <label><input type="checkbox" checked={subTask.status && "checked"} disabled="disabled"/><span></span></label>
-                            </div>
-                        }))}
+                        {todayTask !== undefined && (todayTask.subTasks.map(subTask =>  <div className="subTask"><label><input type="checkbox" checked={subTask.status && "checked"} disabled="disabled"/><span></span></label></div> ))}
                     </div>}
                 </div>
                 : <div className="habitsEdit">
@@ -120,12 +112,13 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                                     </button>
                                 </div>
                             )})}
-                        <button
-                            className="btn-flat waves-effect newSubTask waves-grey grey-text text-darken-3"
-                            onClick={newSubTask}><i className="large material-icons">add</i>Добавить
-                            подзадачу
-                        </button>
-                        <button className="btn waves-effect waves-grey" id="createTask" onClick={pressHandler}>Обновить привычки</button>
+                        <div className="habitsButtons">
+                        <button className="btn-flat waves-effect newSubTask waves-grey grey-text text-darken-3" onClick={newSubTask}><i className="large material-icons">add</i>Добавить подзадачу</button>
+                        <div>
+                            <button className="btn waves-effect waves-grey" id="createTask" onClick={cancelChanges}><i className="large material-icons">clear</i></button>
+                            <button className="btn waves-effect waves-grey" id="createTask" onClick={saveChanges}>Обновить привычки</button>
+                        </div>
+                        </div>
                     </div>
                 </div>
             }
