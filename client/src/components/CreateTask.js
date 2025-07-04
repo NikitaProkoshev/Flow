@@ -111,9 +111,8 @@ export const CreateTask = ({ state, task={} }) => {
                         onChange={e => setDesc(e.target.value)}/>
                 </div>
                 <div className="input-fields3">
-                    {console.log(timeStart)}
                     <input
-                        className={(isEvent && dateStart === "Invalid Date") || timeStart !== undefined ? "required" : ""}
+                        className={((isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined)) ? "required" : ""}
                         id="taskDateStart"
                         type="date"
                         value={dateStart}
