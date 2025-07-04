@@ -30,13 +30,7 @@ export const TasksPage = () => {
         } catch (e) {}
     }, [token, request]);
 
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        if (!creatingTask && taskEdit === '' && checkingTask === '') { fetchTasks() }
-    }, [fetchTasks, creatingTask, taskEdit, checkingTask]);
+    useEffect(() => { if (!creatingTask && taskEdit === '' && checkingTask === '') fetchTasks() }, [fetchTasks, creatingTask, taskEdit, checkingTask]);
 
     function eventsToCalendar(events) {
         var calendar = [];

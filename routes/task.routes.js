@@ -9,16 +9,22 @@ const shortid = require("shortid");
 router.post('/create', auth, async (req, res) => {
     try {
         const {epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+        console.log("A")
         const code = shortId.generate();
+        console.log("B")
         const existing = await Task.findOne({ title })
+        console.log("C")
 
         if (existing) { return res.json({ task: existing }) }
+        console.log("D")
 
         const task = new Task({
             code, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks,  owner: req.user.userId
         });
+        console.log(task)
 
         await task.save()
+        console.log("F")
 
         res.status(201).json({ task })
     } catch(e) { res.status(500).json({message: 'Что-то пошло не так! Попробуйте сноваюddd'}) }
