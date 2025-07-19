@@ -3,6 +3,7 @@ import {useHttp} from "../hooks/http.hook";
 import {useMessage} from "../hooks/message.hook";
 import {todayString, yesterdayString} from "../methods";
 import {AuthContext} from "../context/AuthContext";
+import {upDownSubTask} from "../methods";
 
 export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, templateTask }) => {
     const auth = useContext(AuthContext);
@@ -31,15 +32,11 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
 
     function syncSubTasks(sourceTask, newTask){
         var resultTask = [];
-        sourceTask.map(subTask => {
-            const isExist = newTask.find(sT => sT._id === subTask._id);
-            if (isExist) {
-                resultTask.push({_id: subTask._id, name: isExist.name, status: subTask.status});
-                const delIndex = newTask.indexOf(isExist);
-                newTask.splice(delIndex, 1);
-            }
+        newTask.map(subTask => {
+            const isExist = sourceTask.find(sT => sT._id === subTask._id);
+            if (isExist) resultTask.push({_id: isExist._id, name: subTask.name, status: isExist.status})
+            else resultTask.push(subTask)
         })
-        newTask.map(subTask => resultTask.push(subTask));
         return resultTask
     }
 
@@ -63,7 +60,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
     }
 
     const newSubTask = () => {
-        const newId = Math.max(subTasks.length, 0) + 1;
+        const newId = Math.max(subTasks?.length, 0) + 1;
         setSubTasks([...subTasks, { _id: newId, name: ``, status: false }]);
     };
 
@@ -96,7 +93,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                 </div>
                 : <div className="habitsEdit">
                     <div className="habitsSubTasksBlock">
-                        {subTasks.map(subTask => {
+                        {![0, undefined].includes(subTasks?.length) && subTasks.map((subTask, index) => {
                             return (<div key={subTask._id} className="subTask">
                                     <input
                                         type="text"
@@ -106,7 +103,11 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                                                 ? { ...t, name: e.target.value }
                                                 : t )) }
                                     />
-                                    <button className="btn-flat waves-effect newSubTask waves-grey grey-text text-darken-3"
+                                    <div className="upDownSubTask">
+                                        {index !== 0 && <i className="material-icons upIcon" onClick={(e) => {upDownSubTask(e, subTasks, subTask, setSubTasks)}}>expand_less</i>}
+                                        {index !== subTasks.length-1 && <i className="material-icons downIcon" onClick={(e) => {upDownSubTask(e, subTasks, subTask, setSubTasks)}}>expand_more</i>}
+                                    </div>
+                                    <button className="btn-flat waves-effect deleteSubTask waves-grey grey-text text-darken-3"
                                             onClick={() => setSubTasks(subTasks.filter(t => {
                                                 return t._id !== subTask._id}))}><i className="large material-icons">clear</i>
                                     </button>

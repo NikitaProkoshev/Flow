@@ -3,7 +3,7 @@ import {useHttp} from "../hooks/http.hook";
 import {useMessage} from "../hooks/message.hook";
 import {AuthContext} from "../context/AuthContext";
 import {dateToString} from "../methods";
-import {epicToIcon, epicToColor} from "../methods";
+import {epicToIcon, epicToColor, upDownSubTask} from "../methods";
 
 export const CreateTask = ({ state, task={} }) => {
     const auth = useContext(AuthContext);
@@ -43,7 +43,7 @@ export const CreateTask = ({ state, task={} }) => {
             if (required === 0) {
                 if (task._id === undefined) {
                     const data = await request('/api/task/create', "POST",
-                        { epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart.slice(0,11)+"T"+timeStart, dateEnd: dateEnd.slice(0,11)+"T"+timeEnd, eisenhower: eisenhower, subTasks: subTasks },
+                        { epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart !== undefined ? dateStart.slice(0,11)+(timeStart === undefined ? "" : "T"+timeStart) : undefined, dateEnd: dateEnd.slice(0,11)+(timeEnd === undefined ? "" : "T"+timeEnd), eisenhower: eisenhower, subTasks: subTasks },
                         {Authorization: `Bearer ${auth.token}`});
                     if (data) {
                         message("Задача создана!", "OK");
@@ -51,7 +51,7 @@ export const CreateTask = ({ state, task={} }) => {
                     }
                 } else {
                     const data = await request(`/api/task/update/${task._id}`, "PUT",
-                        {_id: task._id, epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart.slice(0,11)+"T"+timeStart, dateEnd: dateEnd.slice(0,11)+"T"+timeEnd, eisenhower: eisenhower, subTasks: subTasks },
+                        {_id: task._id, epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart !== undefined ? dateStart.slice(0,11)+(timeStart === undefined ? "" : "T"+timeStart) : undefined, dateEnd: dateEnd.slice(0,11)+(timeEnd === undefined ? "" : "T"+timeEnd), eisenhower: eisenhower, subTasks: subTasks },
                         {Authorization: `Bearer ${auth.token}`});
                     if (data) {
                         message("Задача обновлена!", "OK");
@@ -61,8 +61,6 @@ export const CreateTask = ({ state, task={} }) => {
             } else { message("Не все обязательные поля заполнены!", "Warning") }
         } catch (e) {}
     }
-
-    const eventChanging = async event => { setIsEvent(!isEvent) };
 
     const epicChanging = async event => {
         let target = event.target.closest(".epicOption");
@@ -80,11 +78,13 @@ export const CreateTask = ({ state, task={} }) => {
     return (
         <div className="createTask">
             <div className="input-block0">
-                {["МегаФон", "РУДН", "Личное", "Семья", "Уля", "ФК_Краснодар"].map(e =>
+                {["МегаФон", "РУДН", "Личное", "Семья", "Уля", "ФК_Краснодар", "Flow"].map(e =>
                     <button className={"btn-flat waves-effect epicOption waves-" + (epic !== e ? "grey grey-text text-darken-3" : "epic epic-text selected")} id={"epic"+e} onClick={epicChanging} value={e}>
-                        {["МегаФон", "РУДН", "ФК_Краснодар"].includes(e)
-                            ? <img className="epicIcon" id={"epic"+e+"Icon"} src={`..\\img\\${epicToIcon[e]}.png`} alt={e} width="24px" height="24px"/>
-                            : <i className="material-icons epicIcon" id={"epic"+e+"Icon"}>{epicToIcon[e]}</i>
+                        {e === "Flow"
+                            ? <i className="epicIcon val-font gradient-font" id={"epic"+e+"Icon"}>F</i>
+                            : ["МегаФон", "РУДН", "ФК_Краснодар"].includes(e)
+                                ? <img className="epicIcon" id={"epic"+e+"Icon"} src={`..\\img\\${epicToIcon[e]}.png`} alt={e} width="24px" height="24px"/>
+                                : <i className="material-icons epicIcon" id={"epic"+e+"Icon"}>{epicToIcon[e]}</i>
                         }
                         {e.replace("_", " ")}</button>
                 )}
@@ -92,7 +92,7 @@ export const CreateTask = ({ state, task={} }) => {
             <div className="input-block1">
                 <div className="input-fields1">
                     <button className={"btn-flat waves-effect "+(isEvent ? "Event waves-epic" : "notEvent waves-grey grey-text text-darken-3")} id="isEvent"
-                            style={{minWidth: "45px"}} onClick={eventChanging}>Event
+                            style={{minWidth: "45px"}} onClick={ () => setIsEvent(!isEvent) }>Event
                     </button>
                     <input
                         className={title.length === 0 ? "required" : ""}
@@ -152,17 +152,18 @@ export const CreateTask = ({ state, task={} }) => {
                 </div>
             </div>
             <div className="input-block3">
-                {subTasks.map(subTask => {
+                {subTasks.map((subTask, index) => {
                     return (<div key={subTask._id} className="subTask">
-                        <div className="subTaskCheckerBlock"><label>
-                            <input type="checkbox" onClick={(e) => setSubTasks(subTasks.map(t => t._id === subTask._id ? { ...t, status: e.target.checked } : t ))}/>
-                            <span></span></label></div>
                         <input
                             className={subTask.name.length === 0 ? "required" : ""}
                             type="text"
                             value={subTask.name}
                             onChange={ (e) => setSubTasks(subTasks.map(t => t._id === subTask._id ? { ...t, name: e.target.value } : t )) }/>
-                        <button className="btn-flat newSubTask grey-text text-darken-3" onClick={() => setSubTasks(subTasks.filter(t => t._id !== subTask._id))}>
+                        <div className="upDownSubTask">
+                            {index !== 0 && <i className="material-icons upIcon" onClick={(e) => {upDownSubTask(e, subTasks, subTask, setSubTasks)}}>expand_less</i>}
+                            {index !== subTasks.length-1 && <i className="material-icons downIcon" onClick={(e) => {upDownSubTask(e, subTasks, subTask, setSubTasks)}}>expand_more</i>}
+                        </div>
+                        <button className="btn-flat deleteSubTask grey-text text-darken-3" onClick={() => setSubTasks(subTasks.filter(t => t._id !== subTask._id))}>
                             <i className="large material-icons">clear</i></button>
                     </div>
                 )})}
