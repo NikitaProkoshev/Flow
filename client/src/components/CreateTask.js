@@ -1,74 +1,153 @@
-import React, {useContext, useEffect, useState} from 'react'
-import {useHttp} from "../hooks/http.hook";
-import {useMessage} from "../hooks/message.hook";
-import {AuthContext} from "../context/AuthContext";
-import {dateToString} from "../methods";
-import {epicToIcon, epicToColor, upDownSubTask} from "../methods";
+import React, { useContext, useEffect, useState } from 'react';
+import { useHttp } from '../hooks/http.hook';
+import { useMessage } from '../hooks/message.hook';
+import { AuthContext } from '../context/AuthContext';
+import { dateToString } from '../methods';
+import { epicToIcon, epicToColor, upDownSubTask } from '../methods';
+import { Button, Input } from '@chakra-ui/react';
+import { FaChevronUp, FaChevronDown, FaTimes, FaPlus } from 'react-icons/fa';
+import { chakra } from '@chakra-ui/react';
 
-export const CreateTask = ({ state, task={} }) => {
+export const CreateTask = ({ state, task = {} }) => {
     const auth = useContext(AuthContext);
-    const {request} = useHttp();
+    const { request } = useHttp();
     const message = useMessage();
 
     const [epic, setEpic] = useState(task.epic || '');
     const [title, setTitle] = useState(task.title || '');
     const [desc, setDesc] = useState(task.description || '');
     const [isEvent, setIsEvent] = useState(task.isEvent || false);
-    const [dateStart, setDateStart] = useState(task.dateStart !== undefined ? dateToString(task.dateStart) : undefined);
-    const [timeStart, setTimeStart] = useState(new Date(task.dateStart).toLocaleTimeString('ru-RU') !== "Invalid Date" ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
-    const [dateEnd, setDateEnd] = useState(task.dateEnd !== undefined ? dateToString(task.dateEnd) : dateToString(new Date()));
-    const [timeEnd, setTimeEnd] = useState(new Date(task.dateEnd).toLocaleTimeString('ru-RU') !== "Invalid Date" ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
+    const [dateStart, setDateStart] = useState(
+        task.dateStart !== undefined ? dateToString(task.dateStart) : undefined
+    );
+    const [timeStart, setTimeStart] = useState(
+        new Date(task.dateStart).toLocaleTimeString('ru-RU') !== 'Invalid Date'
+            ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5)
+            : undefined
+    );
+    const [dateEnd, setDateEnd] = useState(
+        task.dateEnd !== undefined
+            ? dateToString(task.dateEnd)
+            : dateToString(new Date())
+    );
+    const [timeEnd, setTimeEnd] = useState(
+        new Date(task.dateEnd).toLocaleTimeString('ru-RU') !== 'Invalid Date'
+            ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5)
+            : undefined
+    );
     const [eisenhower, setEisenhower] = useState(task.eisenhower || '');
     const [subTasks, setSubTasks] = useState(task.subTasks || []);
     const [editing, setEditing] = useState(true);
     const [required, setRequired] = useState(2);
 
     useEffect(() => {
-        window.M.updateTextFields();
-        setRequired(document.getElementsByClassName("required").length + (epic === '' ? 1 : 0) + (eisenhower === '' ? 1 : 0));
-        document.documentElement.style.setProperty('--epicColor', epicToColor[epic]+"1)");
+        setRequired(
+            document.getElementsByClassName('required').length +
+                (epic === '' ? 1 : 0) +
+                (eisenhower === '' ? 1 : 0)
+        );
+        document.documentElement.style.setProperty(
+            '--epicColor',
+            epicToColor[epic] + '1)'
+        );
         if (editing && task.eisenhower !== undefined) {
-            eisenhowerSelecting({target: document.getElementById("eisenhower"+task.eisenhower)});
+            eisenhowerSelecting({
+                target: document.getElementById('eisenhower' + task.eisenhower),
+            });
             setEditing(false);
         }
-    })
+    });
 
-    const cancelChanges = async event => {
-        if (task._id === undefined) { state(false) }
-        else { state('') }
-    }
+    const cancelChanges = async (event) => {
+        if (task._id === undefined) {
+            state(false);
+        } else {
+            state('');
+        }
+    };
 
-    const saveChanges = async event => {
+    const saveChanges = async (event) => {
         try {
             if (required === 0) {
                 if (task._id === undefined) {
-                    const data = await request('/api/task/create', "POST",
-                        { epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart !== undefined ? dateStart.slice(0,11)+(timeStart === undefined ? "" : "T"+timeStart) : undefined, dateEnd: dateEnd.slice(0,11)+(timeEnd === undefined ? "" : "T"+timeEnd), eisenhower: eisenhower, subTasks: subTasks },
-                        {Authorization: `Bearer ${auth.token}`});
+                    const data = await request(
+                        '/api/task/create',
+                        'POST',
+                        {
+                            epic: epic,
+                            status: false,
+                            title: title,
+                            description: desc,
+                            isEvent: isEvent,
+                            dateStart:
+                                dateStart !== undefined
+                                    ? dateStart.slice(0, 11) +
+                                      (timeStart === undefined
+                                          ? ''
+                                          : 'T' + timeStart)
+                                    : undefined,
+                            dateEnd:
+                                dateEnd.slice(0, 11) +
+                                (timeEnd === undefined ? '' : 'T' + timeEnd),
+                            eisenhower: eisenhower,
+                            subTasks: subTasks,
+                        },
+                        { Authorization: `Bearer ${auth.token}` }
+                    );
                     if (data) {
-                        message("Задача создана!", "OK");
+                        message('Задача создана!', 'OK');
                         state(false);
                     }
                 } else {
-                    const data = await request(`/api/task/update/${task._id}`, "PUT",
-                        {_id: task._id, epic: epic, status: false, title: title, description: desc, isEvent: isEvent, dateStart: dateStart !== undefined ? dateStart.slice(0,11)+(timeStart === undefined ? "" : "T"+timeStart) : undefined, dateEnd: dateEnd.slice(0,11)+(timeEnd === undefined ? "" : "T"+timeEnd), eisenhower: eisenhower, subTasks: subTasks },
-                        {Authorization: `Bearer ${auth.token}`});
+                    const data = await request(
+                        `/api/task/update/${task._id}`,
+                        'PUT',
+                        {
+                            _id: task._id,
+                            epic: epic,
+                            status: false,
+                            title: title,
+                            description: desc,
+                            isEvent: isEvent,
+                            dateStart:
+                                dateStart !== undefined
+                                    ? dateStart.slice(0, 11) +
+                                      (timeStart === undefined
+                                          ? ''
+                                          : 'T' + timeStart)
+                                    : undefined,
+                            dateEnd:
+                                dateEnd.slice(0, 11) +
+                                (timeEnd === undefined ? '' : 'T' + timeEnd),
+                            eisenhower: eisenhower,
+                            subTasks: subTasks,
+                        },
+                        { Authorization: `Bearer ${auth.token}` }
+                    );
                     if (data) {
-                        message("Задача обновлена!", "OK");
+                        message('Задача обновлена!', 'OK');
                         state('');
                     }
                 }
-            } else { message("Не все обязательные поля заполнены!", "Warning") }
+            } else {
+                message('Не все обязательные поля заполнены!', 'Warning');
+            }
         } catch (e) {}
-    }
+    };
 
-    const epicChanging = async event => {
-        let target = event.target.closest(".epicOption");
-        document.documentElement.style.setProperty('--epicColor', epicToColor[target.value]+"1)");
+    const epicChanging = async (event) => {
+        let target = event.target.closest('.epicOption');
+        document.documentElement.style.setProperty(
+            '--epicColor',
+            epicToColor[target.value] + '1)'
+        );
         setEpic(target.value);
-    }
+    };
 
-    const eisenhowerSelecting = async event => { if (event.target.id.slice(-1) !== eisenhower) setEisenhower(event.target.id.slice(-1)) }
+    const eisenhowerSelecting = async (event) => {
+        if (event.target.id.slice(-1) !== eisenhower)
+            setEisenhower(event.target.id.slice(-1));
+    };
 
     const newSubTask = () => {
         const newId = Math.max(subTasks.length, 0) + 1;
@@ -76,105 +155,278 @@ export const CreateTask = ({ state, task={} }) => {
     };
 
     return (
-        <div className="createTask">
-            <div className="input-block0">
-                {["МегаФон", "РУДН", "Личное", "Семья", "Уля", "ФК_Краснодар", "Flow"].map(e =>
-                    <button className={"btn-flat waves-effect epicOption waves-" + (epic !== e ? "grey grey-text text-darken-3" : "epic epic-text selected")} id={"epic"+e} onClick={epicChanging} value={e}>
-                        {e === "Flow"
-                            ? <i className="epicIcon val-font gradient-font" id={"epic"+e+"Icon"}>F</i>
-                            : ["МегаФон", "РУДН", "ФК_Краснодар"].includes(e)
-                                ? <img className="epicIcon" id={"epic"+e+"Icon"} src={`..\\img\\${epicToIcon[e]}.png`} alt={e} width="24px" height="24px"/>
-                                : <i className="material-icons epicIcon" id={"epic"+e+"Icon"}>{epicToIcon[e]}</i>
+        <div
+            className={`createTask grid grid-cols-${
+                Object.keys(epicToIcon).length
+            } gap-4 w-full my-8 px-4 py-4 items-start`}
+        >
+            {Object.keys(epicToIcon).map((e) => (
+                <Button
+                    className={
+                        'btn-flat waves-effect epicOption waves-' +
+                        (epic !== e
+                            ? 'grey grey-text text-darken-3'
+                            : 'epic epic-text selected')
+                    }
+                    id={'epic' + e}
+                    colorScheme="whiteAlpha"
+                    variant="ghost"
+                    size="sm"
+                    onClick={epicChanging}
+                    value={e}
+                >
+                    {e === 'Flow' ? (
+                        <i
+                            className="epicIcon val-font gradient-font text-3xl/6"
+                            id={'epic' + e + 'Icon'}
+                        >
+                            F
+                        </i>
+                    ) : ['МегаФон', 'РУДН', 'ФК_Краснодар'].includes(e) ? (
+                        <img
+                            className="epicIcon"
+                            id={'epic' + e + 'Icon'}
+                            src={`..\\img\\${epicToIcon[e]}.png`}
+                            alt={e}
+                            width="24px"
+                            height="24px"
+                        />
+                    ) : (
+                        epicToIcon[e]
+                    )}
+                </Button>
+            ))}
+            <div className="col-span-7 grid grid-cols-subgrid gap-4">
+                <div className="input-block1 col-span-5 grid grid-cols-subgrid gap-4">
+                    <Button
+                        className={
+                            'col-span-1 ' +
+                            (isEvent
+                                ? 'Event'
+                                : 'notEvent grey-text text-darken-3')
                         }
-                        {e.replace("_", " ")}</button>
-                )}
-            </div>
-            <div className="input-block1">
-                <div className="input-fields1">
-                    <button className={"btn-flat waves-effect "+(isEvent ? "Event waves-epic" : "notEvent waves-grey grey-text text-darken-3")} id="isEvent"
-                            style={{minWidth: "45px"}} onClick={ () => setIsEvent(!isEvent) }>Event
-                    </button>
-                    <input
-                        className={title.length === 0 ? "required" : ""}
+                        id="isEvent"
+                        variant="ghost"
+                        colorScheme="whiteAlpha"
+                        onClick={() => setIsEvent(!isEvent)}
+                    >
+                        Event
+                    </Button>
+                    <Input
+                        className={
+                            'col-span-4' +
+                            (title.length === 0 ? ' required' : '')
+                        }
                         id="taskTitle"
-                        type="text"
+                        variant="flushed"
                         value={title}
-                        placeholder={"Название " + (isEvent ? "мероприятия" : "задачи")}
-                        onChange={e => { setTitle(e.target.value) }}/>
-                </div>
-                <div className="input-fields2">
-                    <input
+                        placeholder={
+                            'Название ' + (isEvent ? 'мероприятия' : 'задачи')
+                        }
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                    <Input
+                        className="col-span-5"
                         id="taskDescription"
-                        type="text"
+                        variant="flushed"
                         value={desc}
-                        placeholder={"Описание " + (isEvent ? "мероприятия" : "задачи")}
-                        onChange={e => setDesc(e.target.value)}/>
-                </div>
-                <div className="input-fields3">
-                    <input
-                        className={((isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined)) ? "required" : ""}
-                        id="taskDateStart"
-                        type="date"
-                        value={dateStart}
-                        min="2002-11-22"
-                        max={dateEnd}
-                        onChange={e => { setDateStart(e.target.value) }}
-                        style={{width: 'auto'}}/>
-                    <input
-                        className={isEvent && timeStart === undefined ? "required" : ""}
-                        id="taskTimeStart"
-                        type="time"
-                        value={timeStart}
-                        onChange={e => { setTimeStart(e.target.value) }}
-                        style={{width: 'auto'}}/>
-                    <p>➜</p><input
-                        className={dateEnd === "Invalid Date" ? "required" : ""}
-                        id="taskDateEnd"
-                        type="date"
-                        value={dateEnd}
-                        min={dateStart === undefined ? "2002-11-22" : dateStart}
-                        max="2099-12-31"
-                        onChange={e => { setDateEnd(e.target.value) }}
-                        style={{width: 'auto'}}/>
-                    <input
-                        className={isEvent && timeEnd === undefined ? "required" : ""}
-                        id="taskTimeEnd"
-                        type="time"
-                        value={timeEnd}
-                        onChange={e => { setTimeEnd(e.target.value) }}
-                        style={{width: 'auto'}}/>
-                </div>
-            </div>
-            <div className="input-block2">
-                <div id="eisenhowerMatrix">
-                    {["A","B","C","D"].map(val =>
-                        <div className={"eisenhowerOption waves-effect waves-epic" + (eisenhower === val ? " epic-background selected" : "")} id={"eisenhower"+val} onClick={eisenhowerSelecting}>{val}</div>)}
-                </div>
-            </div>
-            <div className="input-block3">
-                {subTasks.map((subTask, index) => {
-                    return (<div key={subTask._id} className="subTask">
-                        <input
-                            className={subTask.name.length === 0 ? "required" : ""}
-                            type="text"
-                            value={subTask.name}
-                            onChange={ (e) => setSubTasks(subTasks.map(t => t._id === subTask._id ? { ...t, name: e.target.value } : t )) }/>
-                        <div className="upDownSubTask">
-                            {index !== 0 && <i className="material-icons upIcon" onClick={(e) => {upDownSubTask(e, subTasks, subTask, setSubTasks)}}>expand_less</i>}
-                            {index !== subTasks.length-1 && <i className="material-icons downIcon" onClick={(e) => {upDownSubTask(e, subTasks, subTask, setSubTasks)}}>expand_more</i>}
-                        </div>
-                        <button className="btn-flat deleteSubTask grey-text text-darken-3" onClick={() => setSubTasks(subTasks.filter(t => t._id !== subTask._id))}>
-                            <i className="large material-icons">clear</i></button>
+                        placeholder={
+                            'Описание ' + (isEvent ? 'мероприятия' : 'задачи')
+                        }
+                        onChange={(e) => setDesc(e.target.value)}
+                    />
+                    <div className="input-fields3 col-span-5">
+                        <Input
+                            className={
+                                (isEvent && dateStart === undefined) ||
+                                (timeStart !== undefined &&
+                                    dateStart === undefined)
+                                    ? 'required'
+                                    : ''
+                            }
+                            id="taskDateStart"
+                            variant="flushed"
+                            type="date"
+                            value={dateStart}
+                            min="2002-11-22"
+                            max={dateEnd}
+                            onChange={(e) => {
+                                setDateStart(e.target.value);
+                            }}
+                            style={{ width: 'auto' }}
+                        />
+                        <Input
+                            className={
+                                'ml-4' +
+                                (isEvent && timeStart === undefined
+                                    ? ' required'
+                                    : '')
+                            }
+                            id="taskTimeStart"
+                            variant="flushed"
+                            type="time"
+                            value={timeStart}
+                            onChange={(e) => {
+                                setTimeStart(e.target.value);
+                            }}
+                            style={{ width: 'auto' }}
+                        />
+                        <p className="ml-4">➜</p>
+                        <Input
+                            className={
+                                'ml-4' +
+                                (dateEnd === 'Invalid Date' ? ' required' : '')
+                            }
+                            id="taskDateEnd"
+                            variant="flushed"
+                            type="date"
+                            value={dateEnd}
+                            min={
+                                dateStart === undefined
+                                    ? '2002-11-22'
+                                    : dateStart
+                            }
+                            max="2099-12-31"
+                            onChange={(e) => {
+                                setDateEnd(e.target.value);
+                            }}
+                            style={{ width: 'auto' }}
+                        />
+                        <Input
+                            className={
+                                'ml-4' +
+                                (isEvent && timeEnd === undefined
+                                    ? ' required'
+                                    : '')
+                            }
+                            id="taskTimeEnd"
+                            variant="flushed"
+                            type="time"
+                            value={timeEnd}
+                            onChange={(e) => {
+                                setTimeEnd(e.target.value);
+                            }}
+                            style={{ width: 'auto' }}
+                        />
                     </div>
-                )})}
+                </div>
+                <div className="input-block2 col-span-2 h-full grid grid-cols-subgrid grid-rows-2 gap-0">
+                    {['A', 'B', 'C', 'D'].map((val) => (
+                        <div
+                            className={
+                                'eisenhowerOption flex justify-center items-center' +
+                                (eisenhower === val
+                                    ? ' epic-background selected'
+                                    : '')
+                            }
+                            id={'eisenhower' + val}
+                            onClick={eisenhowerSelecting}
+                        >
+                            {val}
+                        </div>
+                    ))}
+                </div>
             </div>
-            <div className="input-block4">
-                <button className="btn-flat waves-effect newSubTask waves-grey grey-text text-darken-3" id="createSubTask" onClick={newSubTask}><i className="large material-icons">add</i>Добавить подзадачу</button>
+            {subTasks.map((subTask, index) => {
+                return (
+                    <div key={subTask._id} className="subTask col-span-7 pl-6">
+                        <Input
+                            className={
+                                subTask.name.length === 0 ? 'required' : ''
+                            }
+                            variant="flushed"
+                            value={subTask.name}
+                            onChange={(e) =>
+                                setSubTasks(
+                                    subTasks.map((t) =>
+                                        t._id === subTask._id
+                                            ? { ...t, name: e.target.value }
+                                            : t
+                                    )
+                                )
+                            }
+                        />
+                        {subTasks.length !== 0 && (
+                            <div className="upDownSubTask flex flex-col justify-center ml-4 h-full text-[1.25rem] grey-text text-darken-3">
+                                <FaChevronUp
+                                    className="upIcon"
+                                    onClick={(e) =>
+                                        upDownSubTask(
+                                            e,
+                                            subTasks,
+                                            subTask,
+                                            setSubTasks
+                                        )
+                                    }
+                                />
+                                {index !== subTasks.length - 1 && (
+                                    <FaChevronDown
+                                        className="downIcon"
+                                        onClick={(e) =>
+                                            upDownSubTask(
+                                                e,
+                                                subTasks,
+                                                subTask,
+                                                setSubTasks
+                                            )
+                                        }
+                                    />
+                                )}
+                            </div>
+                        )}
+                        <Button
+                            className="deleteSubTask grey-text text-darken-3 ml-4"
+                            variant="ghost"
+                            colorScheme="whiteAlpha"
+                            onClick={() =>
+                                setSubTasks(
+                                    subTasks.filter(
+                                        (t) => t._id !== subTask._id
+                                    )
+                                )
+                            }
+                        >
+                            <FaTimes className="text-[1.5rem]" />
+                        </Button>
+                    </div>
+                );
+            })}
+            <div className="input-block4 col-span-7 pl-6">
+                <Button
+                    className="newSubTask grey-text text-darken-3"
+                    id="createSubTask"
+                    variant="ghost"
+                    colorScheme="whiteAlpha"
+                    size="sm"
+                    onClick={newSubTask}
+                >
+                    <FaPlus />
+                    Добавить подзадачу
+                </Button>
                 <div>
-                    <button className="btn waves-effect waves-epic epic-background" id="createTask" onClick={cancelChanges}><i className="large material-icons">clear</i></button>
-                    <button className={"btn waves-effect " + (required === 0 ? "waves-epic epic-background" : "someRequired")} id="createTask" onClick={saveChanges}>{task._id === undefined ? "Создать задачу" : "Обновить задачу"}</button>
+                    <Button
+                        id="createTask"
+                        variant="solid"
+                        colorScheme="teal"
+                        size="sm"
+                        onClick={cancelChanges}
+                    >
+                        <FaTimes className="text-[1.5rem]" />
+                    </Button>
+                    <Button
+                        className={required !== 0 && 'someRequired'}
+                        id="createTask"
+                        variant="solid"
+                        colorScheme="teal"
+                        size="sm"
+                        onClick={saveChanges}
+                    >
+                        {task._id === undefined
+                            ? 'Создать задачу'
+                            : 'Обновить задачу'}
+                    </Button>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

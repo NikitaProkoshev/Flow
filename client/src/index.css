@@ -1,5 +1,3 @@
-@import "~materialize-css/dist/css/materialize.min.css";
-
 @font-face {
     font-family: 'Agency';
     src: url('fonts/agency.otf');
@@ -45,8 +43,7 @@
 }
 
 nav span.brand-logo {
-    font-size: 46px;
-    font-weight: normal;
+    font-weight: lighter;
 }
 
 .gradient-font {
@@ -58,13 +55,35 @@ nav span.brand-logo {
     font-weight: bold;
 }
 
-nav { height: 72px }
-
 nav div.nav-wrapper {
     background-color: #272727;
-    /*height: 72px;*/
-    padding: 13px 72px;
     line-height: 46px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav div.nav-wrapper ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 36px;
+}
+
+nav div.nav-wrapper ul li {
+    margin: 0;
+}
+
+nav div.nav-wrapper ul li a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+nav div.nav-wrapper ul li a:hover {
+    color: var(--epicColor);
 }
 
 div.eventsPage {
@@ -77,18 +96,15 @@ div.eventsPage {
 
 div.eventsPage div.eventsButtonsArea {
     height: 46px;
-    background-color: #272727;
+    background-color: rgba(22, 22, 22, 0.5);
     border-radius: 13px;
     display: flex;
     align-items: center;
     flex-direction: row;
     padding: 0 13px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
-
-
-
-
-
 
 /* Общие стили */
 :root {
@@ -97,48 +113,67 @@ div.eventsPage div.eventsButtonsArea {
     --epicsCount: 0;
     --tasksLength: 0;
     --otherLength: 0;
+    --chakra-colors-chakra-body-bg: #0d0d0d !important;
 }
 
-html, body, div#root { height:100% }
-
-html {
-    background-color: #0d0d0d;
-    /*background-image: url("img/bg.jpg");*/
+/* Стили для input полей */
+.input-field {
+    position: relative;
+    margin-bottom: 20px;
 }
 
-h1, h2, h3, h4, h5, h6, p, input, select, textarea {
+.input-field input {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 16px;
     color: #e0e0e0;
-    font-size: 22px;
-    margin: 0;
-    padding: 0;
-    cursor:  default;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #424242;
+    outline: none;
+    transition: border-color 0.3s ease;
 }
 
-h2 {
-    color: white;
-    display: inline-block;
-    font-size: 32px;
-    line-height: 46px;
+.input-field input:focus {
+    border-bottom-color: var(--epicColor);
 }
 
-i.material-icons.buttonIcon { cursor: pointer }
-
-label input[disabled][type="checkbox"]+span:not(.lever) { cursor: default }
-
-label input[disabled][type="checkbox"]:not(:checked)+span:not(.lever):before { background-color: #212121 }
-
-div.toast.OK { background-color: rgb(0, 185, 86) }
-
-div.toast.Warning {
-    background-color: rgb(255, 235, 59);
-    color: #212121;
+.input-field label {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    font-size: 16px;
+    color: #9e9e9e;
+    pointer-events: none;
+    transition: all 0.3s ease;
 }
 
-.waves-effect.waves-grey .waves-ripple { background-color: rgb(97, 97, 97) }
+.input-field input:focus + label,
+.input-field input:not(:placeholder-shown) + label {
+    top: -10px;
+    font-size: 12px;
+    color: var(--epicColor);
+}
 
-.waves-effect.waves-epic { border-bottom-color: var(--epicColor) }
+.yellow-input {
+    border-bottom-color: #ffeb3b !important;
+}
 
-.waves-effect.waves-epic .waves-ripple { background-color: var(--epicColor) }
+.yellow-input:focus {
+    border-bottom-color: #ffeb3b !important;
+}
+
+*/ .waves-effect.waves-grey .waves-ripple {
+    background-color: rgb(97, 97, 97);
+}
+
+.waves-effect.waves-epic {
+    border-bottom-color: var(--epicColor);
+}
+
+.waves-effect.waves-epic .waves-ripple {
+    background-color: var(--epicColor);
+}
 
 .epic-background {
     background-color: var(--epicColor);
@@ -150,17 +185,154 @@ div.toast.Warning {
     color: #000000 !important;
 }
 
-.epic-text { color: var(--epicColor) !important }
+.epic-text {
+    color: var(--epicColor) !important;
+}
+
+.grey-text.text-darken-3 {
+    color: #424242 !important;
+}
+
+.yellow.darken-4 {
+    background-color: #f57f17 !important;
+}
+
+.grey.lighten-1 {
+    background-color: #757575 !important;
+}
+
+.black-text {
+    color: #000000 !important;
+}
+
+/* Стили для карточки авторизации */
+.card {
+    background-color: #272727;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    margin: 20px 0;
+}
+
+.card.blue.darken-1 {
+    background-color: #1976d2;
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.card-title {
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.card-action {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px;
+}
+
+.col {
+    padding: 0 10px;
+    flex: 1;
+}
+
+.col.s6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.col.offset-s3 {
+    margin-left: 25%;
+}
+
+/* html,
+body,
+div#root {
+    height: 100%;
+} */
+
+#root {
+    min-height: 100vh;
+    background-image: url('img/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+}
+
+html {
+    background-color: #0d0d0d;
+    font-size: 10px;
+}
+
+/* Планшеты */
+@media (min-width: 768px) {
+    html {
+        font-size: 12px;
+    }
+}
+
+/* Десктопы */
+@media (min-width: 1024px) {
+    html {
+        font-size: 14px;
+    }
+}
+
+/* Большие экраны */
+@media (min-width: 1440px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+input,
+select,
+textarea {
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    cursor: default;
+}
+
+h2 {
+    color: white;
+    display: inline-block;
+    font-size: 32px;
+    line-height: 46px;
+}
+
+i.material-icons.buttonIcon {
+    cursor: pointer;
+}
+
+div.toast.OK {
+    background-color: rgb(0, 185, 86);
+}
+
+div.toast.Warning {
+    background-color: rgb(255, 235, 59);
+    color: #212121;
+}
 
 div.upDownSubTask {
-    width: 23px;
-    margin-left: 13px;
     color: #9e9e9e;
-    height: 46px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }
 
 div.upDownSubTask > i {
@@ -170,60 +342,31 @@ div.upDownSubTask > i {
     padding-top: 7px;
 }
 
-div.upDownSubTask > i:last-child { padding: 0 0 7px 0 }
+div.upDownSubTask > i:last-child {
+    padding: 0 0 7px 0;
+}
 
 i.epicIcon#epicFlowIcon {
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
-    font-size: 24px;
     display: flex;
     align-items: center;
     font-style: unset;
     font-weight: normal;
 }
 
-
-
 /* Стили для TasksPage */
-div#tasksDashBoard {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin: 36px 72px 72px 72px;
-}
 
 div#tasksDashBoard div#epicsBlock {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
     width: 100%;
     margin-bottom: 36px;
 }
 
-div#tasksDashBoard div#epicsBlock > * {
-    width: 100%;
-    font-size: 32px;
-    text-transform: none;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    border-radius: 13px;
-    border-bottom: 1px solid #FFFFFF;
-    height: 64px;
-    padding: 0;
-}
-
-div#tasksDashBoard div#epicsBlock > *:not(:first-child) { margin-left: 72px }
-
-div#tasksDashBoard div#epicsBlock button > * {
-    margin-right: 13px;
-    font-size: 35px;
+div#tasksDashBoard button.epicOption > * {
     filter: grayscale(1);
 }
 
-div#tasksDashBoard div#epicsBlock button.selected > * { filter: grayscale(0) }
+div#tasksDashBoard button.epicOption.selected > * {
+    filter: grayscale(0);
+}
 
 div#tasksDashBoard > div#tasksBlock {
     display: flex;
@@ -232,8 +375,6 @@ div#tasksDashBoard > div#tasksBlock {
     width: 100%;
 }
 
-div#tasksDashBoard #block1 { width: calc((100% - (var(--epicsCount) - 1)*72px)/7*var(--tasksLength) + (var(--tasksLength) - 1)*72px) }
-
 div#tasksDashBoard #block1 #subBlock1-1 {
     display: flex;
     flex-direction: row;
@@ -241,94 +382,58 @@ div#tasksDashBoard #block1 #subBlock1-1 {
     align-items: center;
 }
 
-div#tasksDashBoard #block1 #subBlock1-1 button.btn#createTask {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    font-size: 16px;
-    background: linear-gradient(to right bottom, #0052f5, #00d0d0);
-    padding: 13px;
-    border-radius: 13px;
-    height: 46px;
-    min-width: auto;
-}
-
-div#tasksDashBoard #block1 #subBlock1-1 button.btn#createTask i {
-    margin-right: 5px;
-}
-
-div#tasksDashBoard #block2 {
-    width: calc((100% - (var(--epicsCount) - 1)*72px)/7*var(--otherLength) + (var(--otherLength) - 1)*72px);
-    margin-left: 72px;
-}
-
-div.tasksList div.task, div.habitsPage div.frontHabits, div.habitsPage div.backHabits, div.habitsEdit {
+div.tasksList div.task,
+div.habitsPage div.frontHabits,
+div.habitsPage div.backHabits,
+div.habitsEdit {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     border-radius: 13px;
-    margin: 36px 0;
-    background-color: #272727;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
 }
 
-div.tasksList div.task { background-color: #1a1a1a }
+div.tasksList div.task:hover,
+div.habitsPage div.frontHabits:hover,
+div.habitsPage div.backHabits:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+div.tasksList div.task {
+    background-color: rgba(22, 22, 22, 0.5);
+}
 
 div.tasksList div.task.doneTask {
     filter: grayscale(1);
-    background-color: rgba(33,33,33,0.22);
+    background-color: rgba(33, 33, 33, 0.22);
 }
 
-div.tasksList div.task.doneTask * { color: #bdbdbd }
+div.tasksList div.task.doneTask * {
+    color: #bdbdbd;
+}
 
 div.task div.taskBlock1 {
     display: flex;
     flex-direction: row;
     align-items: center;
     width: 100%;
-    background-color: #272727;
-    border-radius: 13px;
 }
 
-div.tasksList div.task.doneTask div.taskBlock1 { background-color: rgba(33, 33, 33, 0.22) }
-
-div.task div.taskBlock2 { margin-left: 95px }
-
-div.tasksList div.task * { line-height: 32px }
-
-/* Стили чекера задачи*/
-div.tasksList div.task div.taskCheckerBlock {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 32px;
-    height: 32px;
-    margin: 13px 6px 13px 13px;
+div.tasksList div.task.doneTask div.taskBlock1 {
+    background-color: rgba(33, 33, 33, 0.22);
 }
 
-div.tasksList div.task div.taskCheckerBlock label {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 32px;
-    height: 32px;
+div.task div.taskBlock2 {
+    margin-left: 3.5rem;
 }
 
-div.tasksList div.task div.taskCheckerBlock label span {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-}
-
-div.taskCheckerBlock [type="checkbox"]+span:not(.lever):before {
-    width: 32px;
-    height: 32px;
-    margin: 0;
-}
-
-div.taskCheckerBlock [type="checkbox"]:checked+span:not(.lever):before {
-    width: 18px;
-    height: 30px;
-    top: -2px;
+div.tasksList div.task div.taskCheckerBlock span {
+    width: 1.5rem;
+    height: 1.5rem;
 }
 
 /* Стили информации задачи */
@@ -336,11 +441,8 @@ div.tasksList div.task div.taskInfoBlock {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: calc(100% - 51px);
-    margin: 13px 7px 13px 7px;
+    width: calc(100% - 7rem);
 }
-
-div.tasksList div.task div.taskInfoBlock > *:not(:first-child) { margin: 13px 0 0 0 }
 
 div.tasksList div.task div.taskSubBlock {
     display: flex;
@@ -354,33 +456,30 @@ div.tasksList div.task div.taskSubBlock:not(:last-child) > *:first-child {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 24px;
 }
 
-div.tasksList div.task div.taskSubBlock#subBlock3 .subTask > *:not(:first-child) { margin-left: 13px }
-
-div.tasksList div.task div.taskSubBlock > *:not(:first-child) { margin: 0 0 0 13px }
+div.tasksList
+    div.task
+    div.taskSubBlock#subBlock3
+    .subTask
+    > *:not(:first-child) {
+    margin-left: 13px;
+}
 
 /* Стили кнопки редактирования задачи */
-div.tasksList div.task div.taskEditBlock, div.frontHabits div.habitsInfoBlock i.material-icons {
+div.tasksList div.task div.taskEditBlock,
+div.frontHabits div.habitsInfoBlock i.material-icons {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 32px;
-    height: 32px;
-    margin: 0 13px 0 6px;
 }
 
-div.tasksList div.task div.taskEditBlock i.material-icons, div.frontHabits div.habitsInfoBlock i.material-icons {
+div.tasksList div.task div.taskEditBlock i.material-icons,
+div.frontHabits div.habitsInfoBlock i.material-icons {
     color: #e0e0e0;
-    font-size: 32px;
 }
-
 
 /* Стили подзадачи */
-div.taskSubTasksBlock > *:last-child {
-    margin-bottom: 13px;
-}
 
 div.task div.taskBlock2 div.subTask label,
 div.frontHabits div.habitsSubTasksBlock div.subTask label,
@@ -388,48 +487,15 @@ div.backHabitsInfo div.subTask label {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 22px;
-    height: 22px;
 }
-
-div.task div.taskBlock2 div.subTask label span,
-div.frontHabits div.habitsSubTasksBlock div.subTask label span,
-div.backHabitsInfo div.subTask label span {
-    width: 22px;
-    height: 22px;
-    padding: 0;
-}
-
-div.task div.taskBlock2 div.subTask [type="checkbox"]+span:not(.lever):before,
-div.frontHabits div.habitsSubTasksBlock div.subTask [type="checkbox"]+span:not(.lever):before,
-div.backHabitsInfo div.subTask [type="checkbox"]+span:not(.lever):before {
-    width: 22px;
-    height: 22px;
-    margin: 0;
-}
-
-div.task div.taskBlock2 div.subTask [type="checkbox"]:checked+span:not(.lever):before,
-div.frontHabits div.habitsSubTasksBlock div.subTask [type="checkbox"]:checked+span:not(.lever):before,
-div.backHabitsInfo div.subTask [type="checkbox"]:checked+span:not(.lever):before {
-    width: 12px;
-    height: 21px;
-    top: -2px;
-    left: -3px;
-}
-
-div.task div.taskBlock2 div.subTask p, div.frontHabits div.habitsSubTasksBlock div.subTask p, div.backHabitsInfo div.subTask p { margin-left: 13px }
 
 /* Стили привычек */
-div#block2 h2 {
-    font-size: 32px;
-    line-height: 46px;
-}
-
 div.habitsPage {
     display: flex;
     flex-direction: row;
     align-items: center;
     width: 100%;
+    background-color: rgba(22, 22, 22, 0.5);
 }
 
 div.habitsPage div.backHabits {
@@ -437,18 +503,6 @@ div.habitsPage div.backHabits {
     flex-direction: row;
     align-items: flex-start;
     width: 100%;
-    background-color: #1a1a1a;
-}
-
-div.backHabitsInfo {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-div.backHabitsInfo div.subTask {
-    width: auto;
-    margin-left: 13px;
 }
 
 div.backHabits i {
@@ -460,39 +514,31 @@ div.backHabits i {
 }
 
 div#block2 div.frontHabits {
-    margin: 0;
-    width: 100%;
-    box-shadow: -8px 0 17px 2px rgba(33,33,33,0.14),-3px 0 14px 2px rgba(33,33,33,0.12),-5px 0 5px -3px rgba(33,33,33,0.2);
+    box-shadow: -8px 0 17px 2px rgba(33, 33, 33, 0.14),
+        -3px 0 14px 2px rgba(33, 33, 33, 0.12),
+        -5px 0 5px -3px rgba(33, 33, 33, 0.2);
 }
 
 div.frontHabits div.habitsInfoBlock {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: calc(100% - 26px);
-    margin: 13px 13px 0 13px;
-}
-
-div.frontHabits div.habitsSubTasksBlock { margin: 0 13px 13px 13px }
-
-div.frontHabits div.habitsInfoBlock h3 {
-    line-height: 32px;
-    width: calc(100% - 45px);
 }
 
 div.frontHabits div.habitsInfoBlock i.material-icons {
     margin: 0 0 0 13px;
 }
 
-div.frontHabits div.habitsSubTasksBlock, div.habitsEdit div.habitsSubTasksBlock {
+div.frontHabits div.habitsSubTasksBlock,
+div.habitsEdit div.habitsSubTasksBlock {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    width: calc(100% - 26px);
-    margin-left: 13px;
 }
 
-div.habitsEdit div.habitsSubTasksBlock { margin: 13px }
+div.habitsEdit div.habitsSubTasksBlock {
+    margin: 13px;
+}
 
 div.frontHabits div.habitsSubTasksBlock div.noHabitsMessage {
     line-height: 32px;
@@ -500,11 +546,9 @@ div.frontHabits div.habitsSubTasksBlock div.noHabitsMessage {
     color: #e0e0e0;
 }
 
-div.frontHabits div.habitsSubTasksBlock div.subTask p {
-    height: 32px;
+div.habitsEdit {
+    width: 100%;
 }
-
-div.habitsEdit { width: 100% }
 
 div.habitsEdit div.subTask {
     height: 46px;
@@ -534,26 +578,17 @@ div.habitsEdit div.habitsButtons > div:last-child > *:not(:first-child) {
     margin: 0 0 0 13px;
 }
 
-
-
-
-div.modal#create { border-radius: 22px }
-
-div.createTask {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    color: #e0e0e0;
-    margin: 36px 0;
-    background-color: #212121;
-    border-radius: 13px;
-    padding: 13px;
+div.modal#create {
+    border-radius: 22px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-div.createTask > button {
-    margin-top: 13px;
-    margin-left: 22px;
+div.createTask {
+    background-color: #212121;
+    border-radius: 13px;
+    box-shadow: 0px 0px 1.375rem 0.625rem rgba(255, 255, 255, 0.21),
+        0px 0px 0.8125rem 0.3125rem rgba(255, 255, 255, 0.18),
+        0px 0px 0.4375rem -0.125rem rgba(255, 255, 255, 0.3);
 }
 
 .input-block0 {
@@ -563,7 +598,7 @@ div.createTask > button {
 }
 .input-block0 > * {
     width: 20%;
-    height:100%;
+    height: 100%;
     border-bottom: 1px solid #424242;
 }
 
@@ -572,26 +607,14 @@ div.createTask > button {
     filter: grayscale(1);
 }
 
-.input-block0 button.selected .epicIcon { filter: grayscale(0) }
-
-.input-block1 {
-    width: calc((100% - 22px) /5*4);
-    margin-right: 11px;
+.input-block0 button.selected .epicIcon {
+    filter: grayscale(0);
 }
-
-div.createTask div.input-block1 input, div.createTask div.input-block3 input { margin-bottom: 0 }
 
 .input-block1 .input-fields3 {
     display: flex;
     flex-direction: row;
     align-items: center;
-}
-
-.input-block1 .input-fields3 > *:not(:first-child) { margin-left: 13px }
-
-.input-block2 {
-    width: calc((100% - 22px) /5);
-    margin-left: 11px;
 }
 
 .input-block3 {
@@ -605,26 +628,29 @@ div.input-block3 > *:not(:first-child) {
     width: 100%;
 }
 
-div.input-block3 div.subTaskCheckerBlock { margin: 0 13px 0 0 }
+div.input-block3 div.subTaskCheckerBlock {
+    margin: 0 13px 0 0;
+}
 
-div.input-block3 div.subTask button.deleteSubTask { margin-left: 13px }
+div.input-block3 div.subTask button.deleteSubTask {
+    margin-left: 13px;
+}
 
 div.input-block4 {
     display: flex;
-    width: 100%;
     flex-direction: row;
     justify-content: space-between;
-    margin-left: 22px;
-    margin-top: 13px;
 }
 
-div.input-block4 > div, div.habitsButtons > div:last-child {
+div.input-block4 > div,
+div.habitsButtons > div:last-child {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
-div.input-block4 > div > *:not(:first-child), div.habitsSubTasksBlock > div:last-child > *:not(:first-child) {
+div.input-block4 > div > *:not(:first-child),
+div.habitsSubTasksBlock > div:last-child > *:not(:first-child) {
     margin: 0 0 0 13px;
 }
 
@@ -632,26 +658,9 @@ div.subTask {
     display: flex;
     flex-direction: row;
     align-items: center;
-    width: 100%;
-    height: 32px;
-    margin-top: 13px;
-}
-
-div#eisenhowerMatrix {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    height: calc(100% - 22px);
-    width: 100%;
-    margin-top: 22px;
 }
 
 div.eisenhowerOption {
-    display:flex;
-    justify-content: center;
-    align-items: center;
-    width: 50%;
-    height: 50%;
     color: #e0e0e0;
 }
 
@@ -676,24 +685,12 @@ div.eisenhowerOption#eisenhowerD {
     border-bottom-right-radius: 13px;
 }
 
-button.btn-flat {
-    min-width: 45px;
-    background-color: transparent;
-    color: #e0e0e0;
+button.notEvent {
+    text-decoration: line-through;
 }
 
-button.btn-flat.notEvent { text-decoration: line-through }
-
-button.btn-flat.Event { text-decoration: none }
-
-div.createTask button.btn-flat, div.createTask button.btn {
-    padding: 13px;
-    border-radius: 13px;
-    height: 46px;
-    min-width: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+button.btn-flat.Event {
+    text-decoration: none;
 }
 
 div.createTask button.someRequired {
@@ -701,40 +698,22 @@ div.createTask button.someRequired {
     color: #212121;
 }
 
-div.createTask button.btn-flat {
-    padding: 0;
-    border-radius: 2px;
+button.btn-flat:focus {
+    background-color: transparent;
 }
 
-button.btn-flat:focus { background-color: transparent }
-
-
-
-div.input-fields1 {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+input#taskTitle {
+    width: 100%;
 }
 
-div.input-block1 > * { margin: 13px 0 0 0 }
-
-div.input-fields1 > *:not(:first-child) { margin: 0 0 0 13px }
-
-input#taskTitle { width: 100% }
-
-div.createTask div.input-block1 input.required, div.createTask div.input-block3 input.required { border-bottom-color: var(--epicColor) }
-
-div.createTask input:not(.browser-default), div.createTask p#eisenhowerTitle { border-bottom-color: #424242 }
-
-div.createTask input:not(.browser-default):focus:not([readonly]) {
-    border-bottom: 1px solid #616161;
-    box-shadow: 0 1px 0 0 #616161;
+div.createTask div.input-block1 input.required,
+div.createTask div.input-block3 input.required {
+    border-bottom-color: var(--epicColor);
 }
 
-div.createTask button.btn-flat.notEvent#isEvent:hover { color: rgb(97,97,97) !important }
-
-div.createTask div.input-block1 input { margin-bottom: 0 }
-
+div.createTask button.btn-flat.notEvent#isEvent:hover {
+    color: rgb(97, 97, 97) !important;
+}
 
 /* Стили календаря */
 /*div.fc {*/
@@ -752,14 +731,30 @@ div.fc div.fc-toolbar.fc-header-toolbar {
 
 div.fc table.fc-scrollgrid-liquid {
     border-top-left-radius: 13px;
-    background-color: #272727;
+    backdrop-filter: blur(0.25rem);
     border: none;
 }
 
-div.fc a.fc-col-header-cell-cushion, div.fc span.fc-timegrid-axis-cushion, div.fc div.fc-timegrid-slot-label-cushion {
+div.fc a.fc-col-header-cell-cushion,
+div.fc span.fc-timegrid-axis-cushion,
+div.fc div.fc-timegrid-slot-label-cushion {
     color: #e0e0e0;
 }
 
-div.fc-theme-standard td, div.fc-theme-standard th {
+div.fc-theme-standard td,
+div.fc-theme-standard th {
     border: 1px solid #5a5a5a;
+}
+
+/* Стили для SideBar */
+.main-content {
+    transition: margin-left 0.3s ease-in-out;
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 768px) {
+    .main-content,
+    .main-content.collapsed {
+        transition: margin-left 0.3s;
+    }
 }
