@@ -9,11 +9,7 @@ export const MainContent = ({ children }) => {
             className={`main-content ${
                 isCollapsed
                     ? 'collapsed ml-[4.5rem]'
-                    : `ml-[calc(${
-                          document
-                              .getElementById('sideBar')
-                              .getBoundingClientRect().width + 'px'
-                      }+1rem)]`
+                    : `ml-48`
             }`}
         >
             {children}

@@ -1,26 +1,14 @@
-import React, {
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useHttp } from '../hooks/http.hook';
 import { AuthContext } from '../context/AuthContext';
 import { EpicsContext } from '../App';
 import { TasksList } from '../components/TasksList';
-import {
-    dateToString,
-    todayString,
-    yesterdayString,
-    epicToIcon,
-    epicToColor,
-} from '../methods';
+import { dateToString, todayString, yesterdayString, epicToIcon, epicToColor, checkingSome } from '../methods';
 import { CreateTask } from '../components/CreateTask';
 import { Habits } from '../components/Habits';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { ButtonGroup, Button } from '@chakra-ui/react';
+import { ButtonGroup, Button, Checkbox } from '@chakra-ui/react';
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
 
 export const TasksPage = () => {
@@ -28,61 +16,44 @@ export const TasksPage = () => {
     const [creatingTask, setCreatingTask] = useState(false);
     const [taskEdit, setTaskEdit] = useState('');
     const [checkingTask, setCheckingTask] = useState('');
+    const [deletingTask, setDeletingTask] = useState('');
     const [isTodayVisible, setIsTodayVisible] = useState(true);
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
     const [epics, setEpics] = useContext(EpicsContext);
     const calendarRef = useRef(null);
-    document.documentElement.style.setProperty(
-        '--fc-today-bg-color',
-        'rgb(22,22,22)'
-    );
-    document.documentElement.style.setProperty(
-        '--epicsCount',
-        Object.keys(epicToIcon).length
-    );
-    document.documentElement.style.setProperty(
-        '--tasksLength',
-        Math.round((Object.keys(epicToIcon).length / 10) * 6)
-    );
-    document.documentElement.style.setProperty(
-        '--otherLength',
-        Math.round(
-            Object.keys(epicToIcon).length -
-                (Object.keys(epicToIcon).length / 10) * 6
-        )
-    );
+    document.documentElement.style.setProperty('--fc-today-bg-color', 'rgb(22,22,22)');
+    document.documentElement.style.setProperty('--epicsCount', Object.keys(epicToIcon).length);
+    document.documentElement.style.setProperty('--tasksLength', Math.round((Object.keys(epicToIcon).length / 10) * 6));
+    document.documentElement.style.setProperty('--otherLength', Math.round(Object.keys(epicToIcon).length - (Object.keys(epicToIcon).length / 10) * 6));
 
-    const today = new Date(),
-        week = new Date(),
-        nextWeek = new Date();
+    const today = new Date(), week = new Date(), nextWeek = new Date();
     week.setDate(week.getDate() + 7);
     nextWeek.setDate(nextWeek.getDate() + 14);
 
     const fetchTasks = useCallback(async () => {
         try {
-            const fetched = await request('/api/task', 'GET', null, {
-                Authorization: `Bearer ${token}`,
-            });
+            const fetched = await request('/api/task', 'GET', null, { Authorization: `Bearer ${token}` });
             setTasks(fetched);
         } catch (e) {}
     }, [token, request]);
 
     useEffect(() => {
-        if (!creatingTask && taskEdit === '' && checkingTask === '')
-            fetchTasks();
-    }, [fetchTasks, creatingTask, taskEdit, checkingTask]);
+        if (!creatingTask && taskEdit === '' && checkingTask === '') fetchTasks();
+    }, [fetchTasks, creatingTask, taskEdit, checkingTask, deletingTask]);
 
     function eventsToCalendar(events) {
         var calendar = [];
         events.map((event) => {
             calendar.push({
+                id: event._id,
                 title: event.title,
                 start: event.dateStart,
                 end: event.dateEnd,
-                backgroundColor: epicToColor[event.epic] + '1)',
+                backgroundColor: event.status ? '#424242' : epicToColor[event.epic] + '1)',
                 textColor: '#212121',
                 status: event.status,
+                allDay: event.dateStart.slice(11,16) === "21:00" && event.dateEnd.slice(11,16) === "20:59"
             });
         });
         return calendar;
@@ -112,7 +83,7 @@ export const TasksPage = () => {
                 Object.keys(epicToIcon).length
             } gap-8 w-full p-4 items-start sm:px-12`}
         >
-            <div id="block1" className="col-span-7 lg:col-span-4">
+            <div id="block1" className="col-span-8 lg:col-span-5">
                 <div id="subBlock1-1">
                     <h2 className="gradient-font text-3xl">Сегодня</h2>
                     {!creatingTask && (
@@ -121,7 +92,7 @@ export const TasksPage = () => {
                             leftIcon={
                                 <i className="large material-icons">add</i>
                             }
-                            bgGradient="linear(to-br, #0052f5, #00d0d0)"
+                            bgGradient="linear(to-br, #42e695, #3bb2b8)"
                             variant="solid"
                             colorScheme="whiteAlpha"
                             size="md"
@@ -133,14 +104,15 @@ export const TasksPage = () => {
                         </Button>
                     )}
                 </div>
-                {creatingTask && <CreateTask state={setCreatingTask} />}
+                {creatingTask && <CreateTask state={setCreatingTask} allTasks={tasks} />}
                 <TasksList
                     editState={[taskEdit, setTaskEdit]}
                     checkingState={[checkingTask, setCheckingTask]}
-                    tasks={tasks
-                        .filter(
-                            (task) =>
+                    deletingState={[deletingTask, setDeletingTask]}
+                    allTasks={tasks}
+                    tasks={tasks.filter((task) =>
                                 !task.status &&
+                                !task.isEvent &&
                                 task.epic !== 'Привычки' &&
                                 dateToString(task.dateEnd) <=
                                     dateToString(today) &&
@@ -150,6 +122,7 @@ export const TasksPage = () => {
                     doneTasks={tasks.filter(
                         (task) =>
                             task.status &&
+                            !task.isEvent &&
                             task.epic !== 'Привычки' &&
                             dateToString(task.dateEnd) <= dateToString(today) &&
                             epics.includes(task.epic)
@@ -159,10 +132,13 @@ export const TasksPage = () => {
                 <TasksList
                     editState={[taskEdit, setTaskEdit]}
                     checkingState={[checkingTask, setCheckingTask]}
+                    deletingState={[deletingTask, setDeletingTask]}
+                    allTasks={tasks}
                     tasks={tasks
                         .filter(
                             (task) =>
                                 !task.status &&
+                                !task.isEvent &&
                                 task.epic !== 'Привычки' &&
                                 dateToString(task.dateEnd) >
                                     dateToString(today) &&
@@ -174,6 +150,7 @@ export const TasksPage = () => {
                     doneTasks={tasks.filter(
                         (task) =>
                             task.status &&
+                            !task.isEvent &&
                             task.epic !== 'Привычки' &&
                             dateToString(task.dateEnd) > dateToString(today) &&
                             dateToString(task.dateEnd) <= dateToString(week) &&
@@ -184,10 +161,13 @@ export const TasksPage = () => {
                 <TasksList
                     editState={[taskEdit, setTaskEdit]}
                     checkingState={[checkingTask, setCheckingTask]}
+                    deletingState={[deletingTask, setDeletingTask]}
+                    allTasks={tasks}
                     tasks={tasks
                         .filter(
                             (task) =>
                                 !task.status &&
+                                !task.isEvent &&
                                 task.epic !== 'Привычки' &&
                                 dateToString(task.dateEnd) >
                                     dateToString(week) &&
@@ -199,6 +179,7 @@ export const TasksPage = () => {
                     doneTasks={tasks.filter(
                         (task) =>
                             task.status &&
+                            !task.isEvent &&
                             task.epic !== 'Привычки' &&
                             dateToString(task.dateEnd) > dateToString(week) &&
                             dateToString(task.dateEnd) <=
@@ -291,42 +272,24 @@ export const TasksPage = () => {
                     contentHeight={1080}
                     expandRows={true}
                     headerToolbar={false}
-                    slotLabelFormat={{
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false, // 24-часовой формат
-                    }}
-                    dayHeaderFormat={{
-                        weekday: 'long',
-                        month: '2-digit',
-                        day: '2-digit',
-                    }}
-                    views={{
-                        fourDay: {
-                            type: 'timeGrid',
-                            duration: { days: 4 },
-                            buttonText: '4 days',
-                        },
-                    }}
-                    eventContent={(arg) => (
-                        <div className="custom-event">
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={
-                                        arg.event.status ? 'checked' : false
-                                    }
-                                />
-                                <span></span>
-                            </label>
-                            <b>{arg.event.title}</b>
+                    slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+                    dayHeaderFormat={{ weekday: 'long', month: '2-digit', day: '2-digit' }}
+                    views={{ fourDay: { type: 'timeGrid', duration: { days: 4 }, buttonText: '4 days' } }}
+                    eventContent={arg => (
+                        <div className={`custom-event p-1 text-[#e0e0e0]${arg.event.extendedProps.status ? ' grayscale' : ''}`}>
+                            <Checkbox.Root
+                                onChange={(e) => checkingSome(e, tasks.filter(task => arg.event.title === task.title)[0], setCheckingTask, request, token)}
+                                defaultChecked={checkingTask[0] === arg.event.id || arg.event.extendedProps.status}
+                                variant='subtle'
+                                colorPalette='gray'
+                            >
+                                <Checkbox.HiddenInput />
+                                <Checkbox.Control />
+                                <Checkbox.Label>{arg.event.title}</Checkbox.Label>
+                            </Checkbox.Root>
                         </div>
                     )}
-                    events={eventsToCalendar(
-                        tasks.filter(
-                            (task) => task.isEvent && epics.includes(task.epic)
-                        )
-                    )}
+                    events={eventsToCalendar( tasks.filter(task => task.isEvent && epics.includes(task.epic)) )}
                     datesSet={handleDatesSet}
                 />
             </div>

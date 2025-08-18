@@ -5,15 +5,9 @@ import { todayString, yesterdayString } from '../methods';
 import { AuthContext } from '../context/AuthContext';
 import { upDownSubTask } from '../methods';
 import { FaPen, FaChevronLeft } from 'react-icons/fa';
-import { Checkbox, Button } from '@chakra-ui/react';
+import { Checkbox} from '@chakra-ui/react';
 
-export const Habits = ({
-    editState,
-    checkingState,
-    todayTask,
-    yesterdayTask,
-    templateTask,
-}) => {
+export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, templateTask, }) => {
     const auth = useContext(AuthContext);
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
@@ -21,9 +15,7 @@ export const Habits = ({
     const [subTasks, setSubTasks] = useState([]);
     const [frontDay, setFrontDay] = useState(todayString);
 
-    useEffect(() => {
-        setSubTasks(templateTask?.subTasks);
-    }, [todayTask]);
+    useEffect(() => {setSubTasks(templateTask?.subTasks)}, [todayTask]);
 
     async function checkingSubTask(e, task, subTask) {
         const { _id, status, subTasks } = task;
@@ -113,33 +105,25 @@ export const Habits = ({
                 <div className="backHabits">
                     {frontDay === todayString && (
                         <div className="backHabitsInfo flex flex-col items-center">
-                            <div
-                                className="h-8 m-4 mb-2 flex flex-row items-center"
-                                onClick={(e) => setFrontDay(yesterdayString)}
-                            >
+                            <div className="h-8 m-4 mb-2 flex flex-row items-center" onClick={(e) => setFrontDay(yesterdayString)}>
                                 <FaChevronLeft className="text-2xl text-[#e0e0e0]" />
                             </div>
                             {yesterdayTask &&
                                 yesterdayTask.subTasks.map((subTask) => (
                                     <div className="subTask my-2">
-                                        <Checkbox
+                                        <Checkbox.Root
                                             className="size-4 w-auto"
                                             size="md"
                                             spacing="1rem"
                                             isDisabled={true}
-                                            onChange={(e) =>
-                                                checkingSubTask(
-                                                    e,
-                                                    frontDay === todayString
-                                                        ? todayTask
-                                                        : yesterdayTask,
-                                                    subTask
-                                                )
-                                            }
-                                            defaultChecked={
-                                                subTask.status && 'checked'
-                                            }
-                                        />
+                                            onCheckedChange={ (e) => checkingSubTask(e, frontDay === todayString ? todayTask : yesterdayTask, subTask) }
+                                            defaultChecked={subTask.status && 'checked'}
+                                            variant='subtle'
+                                            colorPalette='gray'
+                                        >
+                                            <Checkbox.HiddenInput />
+                                            <Checkbox.Control />
+                                        </Checkbox.Root>
                                     </div>
                                 ))}
                         </div>
@@ -170,53 +154,45 @@ export const Habits = ({
                                         key={subTask.id}
                                         className="subTask w-full"
                                     >
-                                        <Checkbox
+                                        <Checkbox.Root
                                             className="size-4 w-auto max-w-full text-xl"
                                             size="md"
                                             spacing="1rem"
-                                            onChange={(e) =>
-                                                checkingSubTask(
-                                                    e,
-                                                    frontDay === todayString
-                                                        ? todayTask
-                                                        : yesterdayTask,
-                                                    subTask
-                                                )
-                                            }
-                                            defaultChecked={
-                                                subTask.status && 'checked'
-                                            }
+                                            onCheckedChange={ (e) => checkingSubTask(e, frontDay === todayString ? todayTask : yesterdayTask, subTask) }
+                                            defaultChecked={subTask.status && 'checked'}
+                                            variant='subtle'
+                                            colorPalette='gray'
                                         >
-                                            <p className="text-xl">
-                                                {subTask.name}
-                                            </p>
-                                        </Checkbox>
+                                            <Checkbox.HiddenInput />
+                                            <Checkbox.Control />
+                                            <Checkbox.Label><p className="text-xl">{subTask.name}</p></Checkbox.Label>
+                                        </Checkbox.Root>
                                     </div>
                                 ))
                             )}
                         </div>
                     </div>
                     {frontDay === yesterdayString && (
-                        <div className="backHabitsInfo">
-                            <i
-                                className="material-icons buttonIcon"
-                                onClick={(e) => setFrontDay(todayString)}
-                            >
-                                chevron_right
-                            </i>
+                        <div className="backHabitsInfo flex flex-col items-center">
+                            <div className="h-8 m-4 mb-2 flex flex-row items-center" onClick={(e) => setFrontDay(yesterdayString)}>
+                                <FaChevronLeft className="text-2xl text-[#e0e0e0]" />
+                            </div>
                             {todayTask !== undefined &&
                                 todayTask.subTasks.map((subTask) => (
-                                    <div className="subTask">
-                                        <label>
-                                            <input
-                                                type="checkbox"
-                                                checked={
-                                                    subTask.status && 'checked'
-                                                }
-                                                disabled="disabled"
-                                            />
-                                            <span></span>
-                                        </label>
+                                    <div className="subTask my-2">
+                                        <Checkbox.Root
+                                            className="size-4 w-auto"
+                                            size="md"
+                                            spacing="1rem"
+                                            isDisabled={true}
+                                            onCheckedChange={(e) => checkingSubTask(e, frontDay === todayString ? todayTask : yesterdayTask, subTask)}
+                                            defaultChecked={subTask.status && 'checked'}
+                                            variant='subtle'
+                                            colorPalette='gray'
+                                        >
+                                            <Checkbox.HiddenInput />
+                                            <Checkbox.Control />
+                                        </Checkbox.Root>
                                     </div>
                                 ))}
                         </div>

@@ -1,4 +1,4 @@
-import { FaUser, FaUsers, FaHeart } from 'react-icons/fa';
+import { FaUser, FaUsers, FaHeart, FaPlane } from 'react-icons/fa';
 
 export const dateToString = (date) => {
     return new Date(date).toLocaleDateString('en-ca', {
@@ -36,8 +36,14 @@ export const epicToIcon = {
             id={'epicУляIcon'}
         />
     ),
+    Поездки: (
+        <FaPlane 
+            className="epicIcon text-2xl leading-6 min-w-6 min-h-6"
+            id={'epicПоездкиIcon'}
+        />
+    ),
     ФК_Краснодар: 'FC_Krasnodar',
-    Flow: 'F',
+    Flow: 'logo',
 };
 
 export const epicToColor = {
@@ -47,8 +53,9 @@ export const epicToColor = {
     Личное: 'rgba(149, 117, 205,',
     Семья: 'rgba(255, 241, 118,',
     Уля: 'rgba(240, 98, 146,',
+    Поездки: 'rgba(234, 88, 12,',
     ФК_Краснодар: 'rgba(0,73,35,',
-    Flow: 'rgba(0, 145, 227,',
+    Flow: 'rgba(63, 204, 167,',
 };
 
 export function upDownSubTask(e, subTasks, subTask, setSubTasks) {
@@ -62,4 +69,18 @@ export function upDownSubTask(e, subTasks, subTask, setSubTasks) {
         subTasksCopy[subTaskPos],
     ];
     setSubTasks(subTasksCopy);
+}
+
+export async function checkingSome(e, task, checkingState, request, token) {
+    console.log(task);
+    const { _id, status, subTasks } = task;
+    console.group(_id);
+    checkingState(_id);
+    await request(
+        '/api/task/check/' + task._id,
+        'PUT',
+        { _id: _id, status: !status, subTasks: subTasks },
+        { Authorization: `Bearer ${token}` }
+    );
+    checkingState('');
 }

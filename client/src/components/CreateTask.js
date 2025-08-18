@@ -4,11 +4,10 @@ import { useMessage } from '../hooks/message.hook';
 import { AuthContext } from '../context/AuthContext';
 import { dateToString } from '../methods';
 import { epicToIcon, epicToColor, upDownSubTask } from '../methods';
-import { Button, Input } from '@chakra-ui/react';
+import { Button, Input, Combobox, Portal, useFilter, useListCollection } from '@chakra-ui/react';
 import { FaChevronUp, FaChevronDown, FaTimes, FaPlus } from 'react-icons/fa';
-import { chakra } from '@chakra-ui/react';
 
-export const CreateTask = ({ state, task = {} }) => {
+export const CreateTask = ({ state, allTasks, task = {} }) => {
     const auth = useContext(AuthContext);
     const { request } = useHttp();
     const message = useMessage();
@@ -154,11 +153,18 @@ export const CreateTask = ({ state, task = {} }) => {
         setSubTasks([...subTasks, { _id: newId, name: ``, status: false }]);
     };
 
+    const { contains } = useFilter({ sensitivity: "base" })
+
+    const { collection, filter } = useListCollection({
+        initialItems: allTasks.map(({ title, _id }) => ({ label: title, value: _id })),
+        filter: contains,
+    })
+
     return (
         <div
             className={`createTask grid grid-cols-${
                 Object.keys(epicToIcon).length
-            } gap-4 w-full my-8 px-4 py-4 items-start`}
+            } gap-4 w-full my-8 px-4 py-4 items-start backdrop-blur-sm`}
         >
             {Object.keys(epicToIcon).map((e) => (
                 <Button
@@ -175,15 +181,8 @@ export const CreateTask = ({ state, task = {} }) => {
                     onClick={epicChanging}
                     value={e}
                 >
-                    {e === 'Flow' ? (
-                        <i
-                            className="epicIcon val-font gradient-font text-3xl/6"
-                            id={'epic' + e + 'Icon'}
-                        >
-                            F
-                        </i>
-                    ) : ['МегаФон', 'РУДН', 'ФК_Краснодар'].includes(e) ? (
-                        <img
+                    {['МегаФон', 'РУДН', 'ФК_Краснодар', 'Flow'].includes(e)
+                        ? <img
                             className="epicIcon"
                             id={'epic' + e + 'Icon'}
                             src={`..\\img\\${epicToIcon[e]}.png`}
@@ -191,13 +190,11 @@ export const CreateTask = ({ state, task = {} }) => {
                             width="24px"
                             height="24px"
                         />
-                    ) : (
-                        epicToIcon[e]
-                    )}
+                        : epicToIcon[e]}
                 </Button>
             ))}
-            <div className="col-span-7 grid grid-cols-subgrid gap-4">
-                <div className="input-block1 col-span-5 grid grid-cols-subgrid gap-4">
+            <div className="col-span-8 grid grid-cols-subgrid gap-4">
+                <div className="input-block1 col-span-6 grid grid-cols-subgrid gap-4">
                     <Button
                         className={
                             'col-span-1 ' +
@@ -209,24 +206,45 @@ export const CreateTask = ({ state, task = {} }) => {
                         variant="ghost"
                         colorScheme="whiteAlpha"
                         onClick={() => setIsEvent(!isEvent)}
+                    >Event</Button>
+                    <Combobox.Root
+                        className='col-span-1'
+                        collection={collection}
+                        onInputValueChange={(e) => filter(e.inputValue)}
+                        variant='subtle'
+                        // width="320px"
                     >
-                        Event
-                    </Button>
+                        <Combobox.Control>
+                            <Combobox.Input placeholder="Родительская задача" />
+                            <Combobox.IndicatorGroup>
+                            <Combobox.ClearTrigger />
+                            <Combobox.Trigger />
+                            </Combobox.IndicatorGroup>
+                        </Combobox.Control>
+                        <Portal>
+                            <Combobox.Positioner>
+                            <Combobox.Content>
+                                <Combobox.Empty>No items found</Combobox.Empty>
+                                {collection.items.map((item) => (
+                                <Combobox.Item item={item} key={item.value}>
+                                    {item.label}
+                                    <Combobox.ItemIndicator />
+                                </Combobox.Item>
+                                ))}
+                            </Combobox.Content>
+                            </Combobox.Positioner>
+                        </Portal>
+                        </Combobox.Root>
                     <Input
-                        className={
-                            'col-span-4' +
-                            (title.length === 0 ? ' required' : '')
-                        }
+                        className={'col-span-4' +(title.length === 0 ? ' required' : '')}
                         id="taskTitle"
                         variant="flushed"
                         value={title}
-                        placeholder={
-                            'Название ' + (isEvent ? 'мероприятия' : 'задачи')
-                        }
+                        placeholder={'Название ' + (isEvent ? 'мероприятия' : 'задачи')}
                         onChange={(e) => setTitle(e.target.value)}
                     />
                     <Input
-                        className="col-span-5"
+                        className="col-span-6"
                         id="taskDescription"
                         variant="flushed"
                         value={desc}
@@ -235,7 +253,7 @@ export const CreateTask = ({ state, task = {} }) => {
                         }
                         onChange={(e) => setDesc(e.target.value)}
                     />
-                    <div className="input-fields3 col-span-5">
+                    <div className="input-fields3 col-span-6">
                         <Input
                             className={
                                 (isEvent && dateStart === undefined) ||
@@ -266,6 +284,7 @@ export const CreateTask = ({ state, task = {} }) => {
                             variant="flushed"
                             type="time"
                             value={timeStart}
+                            max={(dateStart === dateEnd && timeEnd) && timeEnd}
                             onChange={(e) => {
                                 setTimeStart(e.target.value);
                             }}
@@ -303,6 +322,7 @@ export const CreateTask = ({ state, task = {} }) => {
                             variant="flushed"
                             type="time"
                             value={timeEnd}
+                            min={(dateStart === dateEnd && timeStart) && timeStart}
                             onChange={(e) => {
                                 setTimeEnd(e.target.value);
                             }}
@@ -329,7 +349,7 @@ export const CreateTask = ({ state, task = {} }) => {
             </div>
             {subTasks.map((subTask, index) => {
                 return (
-                    <div key={subTask._id} className="subTask col-span-7 pl-6">
+                    <div key={subTask._id} className="subTask col-span-8 pl-6">
                         <Input
                             className={
                                 subTask.name.length === 0 ? 'required' : ''
@@ -391,7 +411,7 @@ export const CreateTask = ({ state, task = {} }) => {
                     </div>
                 );
             })}
-            <div className="input-block4 col-span-7 pl-6">
+            <div className="input-block4 col-span-8 pl-6">
                 <Button
                     className="newSubTask grey-text text-darken-3"
                     id="createSubTask"
