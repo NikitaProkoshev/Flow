@@ -3,6 +3,7 @@ const {Schema, model, Types} = require('mongoose')
 const schema = new Schema({
     owner: {type: Types.ObjectId, ref: 'user'},
     epic: {type: String}, // EPIC задачи
+    parentId: {type: Types.ObjectId, ref: "task"}, // ID родительской задачи
     status: {type: Boolean}, // Статус задачи (True=Выполнено, False=НЕ Выполнено)
     title: {type: String, required: true}, // Название задачи
     description: {type: String}, // Описание задачи
