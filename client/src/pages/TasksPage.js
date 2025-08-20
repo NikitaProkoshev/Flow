@@ -8,11 +8,12 @@ import { CreateTask } from '../components/CreateTask';
 import { Habits } from '../components/Habits';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { ButtonGroup, Button, Checkbox } from '@chakra-ui/react';
-import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
+import { ButtonGroup, Button, IconButton, Checkbox } from '@chakra-ui/react';
+import { FaAngleLeft, FaAngleRight, FaPlus } from 'react-icons/fa6';
 
 export const TasksPage = () => {
     const [tasks, setTasks] = useState([]);
+    var habits, events, todayTasks, weekTasks, nextWeekTasks;
     const [creatingTask, setCreatingTask] = useState(false);
     const [taskEdit, setTaskEdit] = useState('');
     const [checkingTask, setCheckingTask] = useState('');
@@ -22,14 +23,15 @@ export const TasksPage = () => {
     const { token } = useContext(AuthContext);
     const [epics, setEpics] = useContext(EpicsContext);
     const calendarRef = useRef(null);
-    document.documentElement.style.setProperty('--fc-today-bg-color', 'rgb(22,22,22)');
+    document.documentElement.style.setProperty('--fc-today-bg-color', 'rgba(22,22,22)');
     document.documentElement.style.setProperty('--epicsCount', Object.keys(epicToIcon).length);
     document.documentElement.style.setProperty('--tasksLength', Math.round((Object.keys(epicToIcon).length / 10) * 6));
     document.documentElement.style.setProperty('--otherLength', Math.round(Object.keys(epicToIcon).length - (Object.keys(epicToIcon).length / 10) * 6));
 
-    const today = new Date(), week = new Date(), nextWeek = new Date();
+    const today = new Date(), week = new Date(), nextWeek = new Date(), minusMonth = new Date();
     week.setDate(week.getDate() + 7);
     nextWeek.setDate(nextWeek.getDate() + 14);
+    minusMonth.setMonth(minusMonth.getMonth() - 1);
 
     const fetchTasks = useCallback(async () => {
         try {
@@ -43,9 +45,8 @@ export const TasksPage = () => {
     }, [fetchTasks, creatingTask, taskEdit, checkingTask, deletingTask]);
 
     function eventsToCalendar(events) {
-        var calendar = [];
-        events.map((event) => {
-            calendar.push({
+        return events && events.map((event) => {
+            return {
                 id: event._id,
                 title: event.title,
                 start: event.dateStart,
@@ -53,10 +54,9 @@ export const TasksPage = () => {
                 backgroundColor: event.status ? '#424242' : epicToColor[event.epic] + '1)',
                 textColor: '#212121',
                 status: event.status,
-                allDay: event.dateStart.slice(11,16) === "21:00" && event.dateEnd.slice(11,16) === "20:59"
-            });
+                allDay: ['00:00', '21:00'].includes(event.dateStart.slice(11,16)) && ['00:00', '20:59'].includes(event.dateEnd.slice(11,16))
+            };
         });
-        return calendar;
     }
 
     const sortFunc = (a, b) => {
@@ -70,63 +70,47 @@ export const TasksPage = () => {
     };
 
     const handleDatesSet = useCallback((dateInfo) => {
-        setIsTodayVisible(
-            today >= dateInfo.view.activeStart &&
-                today < dateInfo.view.activeEnd
-        );
-    }, []);
+        setIsTodayVisible(today >= dateInfo.view.activeStart && today < dateInfo.view.activeEnd);
+    }, [today]);
+
+    function splitTasks(tasks) {
+        var tasksCopy = JSON.parse(JSON.stringify(tasks));
+        habits = tasksCopy.filter(task => [`Привычки_${yesterdayString}`, `Привычки_${todayString}`, 'Привычки_шаблон'].includes(task.title) && task.epic === 'Привычки');
+        tasksCopy = tasksCopy.filter(task => task.epic !== 'Привычки' && epics.includes(task.epic));
+        events = tasksCopy.filter(task => task.isEvent);
+        tasksCopy = tasksCopy.filter(task => !task.isEvent);
+        todayTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(today) || dateToString(task.dateEnd) <= dateToString(today))
+        tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(today) || dateToString(task.dateEnd) <= dateToString(today)))
+        weekTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(week) || dateToString(task.dateEnd) <= dateToString(week))
+        tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(week) || dateToString(task.dateEnd) <= dateToString(week)))
+        nextWeekTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(nextWeek) || dateToString(task.dateEnd) <= dateToString(nextWeek))
+        tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(nextWeek) || dateToString(task.dateEnd) <= dateToString(nextWeek)))
+        return <></>
+    }
 
     return (
-        <div
-            id="tasksDashBoard"
-            className={`grid grid-cols-${
-                Object.keys(epicToIcon).length
-            } gap-8 w-full p-4 items-start sm:px-12`}
-        >
-            <div id="block1" className="col-span-8 lg:col-span-5">
+        <div className={`grid grid-cols-${Object.keys(epicToIcon).length} gap-8 w-full p-4 items-start sm:px-8`} id="tasksDashBoard">
+            {Object.keys(tasks).length !== 0 && splitTasks(tasks)}
+            <div className="col-span-8 lg:col-span-5" id="block1">
                 <div id="subBlock1-1">
                     <h2 className="gradient-font text-3xl">Сегодня</h2>
                     {!creatingTask && (
                         <Button
                             id="createTask"
-                            leftIcon={
-                                <i className="large material-icons">add</i>
-                            }
-                            bgGradient="linear(to-br, #42e695, #3bb2b8)"
-                            variant="solid"
-                            colorScheme="whiteAlpha"
-                            size="md"
-                            onClick={(e) => {
-                                setCreatingTask(true);
-                            }}
-                        >
-                            Новая задача
-                        </Button>
+                            bgGradient="to-br" gradientFrom="#42e695" gradientTo="#3bb2b8" rounded='lg'
+                            variant="solid" colorPalette="gray" size="md"
+                            onClick={(e) => setCreatingTask(true)}
+                        ><FaPlus className="text-2xl text-[#e0e0e0]" />Новая задача</Button>
                     )}
                 </div>
-                {creatingTask && <CreateTask state={setCreatingTask} allTasks={tasks} />}
+                {creatingTask && <CreateTask state={setCreatingTask} allTasks={tasks.filter((task) => task.epic !== 'Привычки')} />}
                 <TasksList
                     editState={[taskEdit, setTaskEdit]}
                     checkingState={[checkingTask, setCheckingTask]}
                     deletingState={[deletingTask, setDeletingTask]}
                     allTasks={tasks}
-                    tasks={tasks.filter((task) =>
-                                !task.status &&
-                                !task.isEvent &&
-                                task.epic !== 'Привычки' &&
-                                dateToString(task.dateEnd) <=
-                                    dateToString(today) &&
-                                epics.includes(task.epic)
-                        )
-                        .sort(sortFunc)}
-                    doneTasks={tasks.filter(
-                        (task) =>
-                            task.status &&
-                            !task.isEvent &&
-                            task.epic !== 'Привычки' &&
-                            dateToString(task.dateEnd) <= dateToString(today) &&
-                            epics.includes(task.epic)
-                    )}
+                    tasks={todayTasks?.filter((task) => !task.status).sort(sortFunc)}
+                    doneTasks={todayTasks?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
                 />
                 <h2 className="gradient-font text-3xl">Неделя</h2>
                 <TasksList
@@ -134,28 +118,8 @@ export const TasksPage = () => {
                     checkingState={[checkingTask, setCheckingTask]}
                     deletingState={[deletingTask, setDeletingTask]}
                     allTasks={tasks}
-                    tasks={tasks
-                        .filter(
-                            (task) =>
-                                !task.status &&
-                                !task.isEvent &&
-                                task.epic !== 'Привычки' &&
-                                dateToString(task.dateEnd) >
-                                    dateToString(today) &&
-                                dateToString(task.dateEnd) <=
-                                    dateToString(week) &&
-                                epics.includes(task.epic)
-                        )
-                        .sort(sortFunc)}
-                    doneTasks={tasks.filter(
-                        (task) =>
-                            task.status &&
-                            !task.isEvent &&
-                            task.epic !== 'Привычки' &&
-                            dateToString(task.dateEnd) > dateToString(today) &&
-                            dateToString(task.dateEnd) <= dateToString(week) &&
-                            epics.includes(task.epic)
-                    )}
+                    tasks={weekTasks?.filter((task) => !task.status).sort(sortFunc)}
+                    doneTasks={weekTasks?.filter((task) => task.status)}
                 />
                 <h2 className="gradient-font text-3xl">Следующая неделя</h2>
                 <TasksList
@@ -163,29 +127,8 @@ export const TasksPage = () => {
                     checkingState={[checkingTask, setCheckingTask]}
                     deletingState={[deletingTask, setDeletingTask]}
                     allTasks={tasks}
-                    tasks={tasks
-                        .filter(
-                            (task) =>
-                                !task.status &&
-                                !task.isEvent &&
-                                task.epic !== 'Привычки' &&
-                                dateToString(task.dateEnd) >
-                                    dateToString(week) &&
-                                dateToString(task.dateEnd) <=
-                                    dateToString(nextWeek) &&
-                                epics.includes(task.epic)
-                        )
-                        .sort(sortFunc)}
-                    doneTasks={tasks.filter(
-                        (task) =>
-                            task.status &&
-                            !task.isEvent &&
-                            task.epic !== 'Привычки' &&
-                            dateToString(task.dateEnd) > dateToString(week) &&
-                            dateToString(task.dateEnd) <=
-                                dateToString(nextWeek) &&
-                            epics.includes(task.epic)
-                    )}
+                    tasks={nextWeekTasks?.filter(task => !task.status).sort(sortFunc)}
+                    doneTasks={nextWeekTasks?.filter(task => task.status)}
                 />
             </div>
             <div id="block2" className="col-span-7 lg:col-span-3">
@@ -193,86 +136,24 @@ export const TasksPage = () => {
                 <Habits
                     editState={[taskEdit, setTaskEdit]}
                     checkingState={[checkingTask, setCheckingTask]}
-                    todayTask={
-                        tasks.filter(
-                            (task) =>
-                                task.epic === 'Привычки' &&
-                                task.title === 'Привычки_' + todayString
-                        )[0]
-                    }
-                    yesterdayTask={
-                        tasks.filter(
-                            (task) =>
-                                task.epic === 'Привычки' &&
-                                task.title === 'Привычки_' + yesterdayString
-                        )[0]
-                    }
-                    templateTask={
-                        tasks.filter(
-                            (task) =>
-                                task.epic === 'Привычки' &&
-                                task.title === 'Привычки_шаблон'
-                        )[0]
-                    }
+                    todayTask={habits?.filter(task => task.title === `Привычки_${todayString}`)[0]}
+                    yesterdayTask={habits?.filter(task => task.title ===`Привычки_${yesterdayString}`)[0]}
+                    templateTask={habits?.filter(task => task.title === 'Привычки_шаблон')[0]}
                 />
                 <div className="eventsPage">
                     <h2 className="gradient-font text-3xl">Мероприятия</h2>
-                    <ButtonGroup
-                        className="backdrop-blur-sm rounded-lg"
-                        variant="ghost"
-                        spacing="0"
-                    >
-                        <Button
-                            id="isEvent"
-                            colorScheme="whiteAlpha"
-                            leftIcon={
-                                <FaAngleLeft className="text-2xl text-[#e0e0e0]" />
-                            }
-                            onClick={() => {
-                                calendarRef.current.getApi().prev();
-                            }}
-                        />
-                        <Button
-                            id="isEvent"
-                            colorScheme="whiteAlpha"
-                            isDisabled={isTodayVisible}
-                            onClick={() => {
-                                calendarRef.current.getApi().today();
-                            }}
-                        >
-                            <p
-                                className={
-                                    'text-2xl' +
-                                    (!isTodayVisible ? ' text-[#e0e0e0]' : '')
-                                }
-                            >
-                                Сегодня
-                            </p>
-                        </Button>
-                        <Button
-                            id="isEvent"
-                            colorScheme="whiteAlpha"
-                            leftIcon={
-                                <FaAngleRight className="text-2xl text-[#e0e0e0]" />
-                            }
-                            onClick={() => {
-                                calendarRef.current.getApi().next();
-                            }}
-                        />
+                    <ButtonGroup variant="ghost" spacing="0" backgroundColor='#161616' rounded='lg' gap={0}>
+                        <IconButton colorPalette="gray" onClick={() => calendarRef.current.getApi().prev()}>
+                            <FaAngleLeft className="text-2xl text-[#e0e0e0]" /></IconButton>
+                        <Button colorPalette="gray" disabled={isTodayVisible} onClick={() => calendarRef.current.getApi().today()}>
+                            <p className={`text-2xl${!isTodayVisible ? ' text-[#e0e0e0]' : ''}`}>Сегодня</p></Button>
+                        <IconButton colorPalette="gray" onClick={() => calendarRef.current.getApi().next()}>
+                            <FaAngleRight className="text-2xl text-[#e0e0e0]" /></IconButton>
                     </ButtonGroup>
                 </div>
                 <FullCalendar
-                    className="backdrop-blur-sm"
-                    ref={calendarRef}
-                    plugins={[timeGridPlugin]}
-                    initialView="fourDay"
-                    locale="rulocale"
-                    slotMinTime="09:00:00"
-                    slotMaxTime="22:30:00"
-                    contentHeight={1080}
-                    expandRows={true}
-                    headerToolbar={false}
-                    slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+                    ref={calendarRef} plugins={[timeGridPlugin]} initialView="fourDay" locale="rulocale" slotMinTime="09:00:00" slotMaxTime="22:30:00"
+                    contentHeight={1080} expandRows={true} headerToolbar={false} slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
                     dayHeaderFormat={{ weekday: 'long', month: '2-digit', day: '2-digit' }}
                     views={{ fourDay: { type: 'timeGrid', duration: { days: 4 }, buttonText: '4 days' } }}
                     eventContent={arg => (
@@ -280,8 +161,7 @@ export const TasksPage = () => {
                             <Checkbox.Root
                                 onChange={(e) => checkingSome(e, tasks.filter(task => arg.event.title === task.title)[0], setCheckingTask, request, token)}
                                 defaultChecked={checkingTask[0] === arg.event.id || arg.event.extendedProps.status}
-                                variant='subtle'
-                                colorPalette='gray'
+                                variant='subtle' colorPalette='gray'
                             >
                                 <Checkbox.HiddenInput />
                                 <Checkbox.Control />
@@ -289,7 +169,7 @@ export const TasksPage = () => {
                             </Checkbox.Root>
                         </div>
                     )}
-                    events={eventsToCalendar( tasks.filter(task => task.isEvent && epics.includes(task.epic)) )}
+                    events={eventsToCalendar(events)}
                     datesSet={handleDatesSet}
                 />
             </div>

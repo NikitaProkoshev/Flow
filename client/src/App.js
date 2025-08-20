@@ -9,6 +9,7 @@ import { SideBarProvider } from './context/SideBarContext';
 import { Loader } from './components/Loader';
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { epicToIcon } from './methods';
+import { system } from './theme';
 
 export const EpicsContext = createContext(null);
 
@@ -23,10 +24,8 @@ function App() {
     }
 
     return (
-        <AuthContext.Provider
-            value={{ token, login, logout, userId, isAuthenticated }}
-        >
-            <ChakraProvider value={defaultSystem}>
+        <AuthContext.Provider value={{ token, login, logout, userId, isAuthenticated }}>
+            <ChakraProvider value={system}>
                 <SideBarProvider>
                     <EpicsContext.Provider value={[epics, setEpics]}>
                         <Router>

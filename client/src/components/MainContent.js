@@ -8,7 +8,7 @@ export const MainContent = ({ children }) => {
         <div
             className={`main-content ${
                 isCollapsed
-                    ? 'collapsed ml-[4.5rem]'
+                    ? 'collapsed ml-16'
                     : `ml-48`
             }`}
         >

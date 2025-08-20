@@ -8,26 +8,34 @@ const shortid = require("shortid");
 
 router.post('/create', auth, async (req, res) => {
     try {
-        const {epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+        const {epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+        const parentId = req.body.parentId?.[0];
         const code = shortId.generate();
+
+        console.log(parentId);
 
         const cleanSubTasks = subTasks.map(subtask => {return { name: subtask.name, status: subtask.status }})
 
         const existing = await Task.findOne({ title })
+        console.log(existing);
         if (existing) { return res.json({ task: existing }) }
-        const task = new Task({ code, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks: cleanSubTasks,  owner: req.user.userId });
+        console.log("AAAAAAAA");
+        const task = new Task({ code, epic, parentId, parentsTitles, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks: cleanSubTasks,  owner: req.user.userId });
         await task.save()
+        console.log("AAAAAAAAA");
         res.status(201).json({ task })
     } catch(e) { console.log(e); res.status(500).json({message: 'Что-то пошло не так! Попробуйте сноваюddd'}) }
 });
 
 router.put('/update/:id', async (req, res) => {
     try {
-        const {_id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+        const {_id, epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+        const parentId = req.body.parentId?.[0];
+        console.log(parentId);
         const existing = await Task.findOne({ _id })
         if (existing !== null) { if (existing.length > 1 || existing._id.toString() !== _id) { return res.json({ task: existing }) } }
 
-        const updatedTask = new Task({ _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
+        const updatedTask = new Task({ _id, epic, parentId, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
         const task = await Task.findByIdAndUpdate( _id, { $set: updatedTask }, { new: true } );
 
         res.status(201).json({ task })
@@ -39,8 +47,9 @@ router.put('/check/:id', async (req, res) => {
         const {_id, status, subTasks} = req.body;
         const checkingTask = await Task.findOne({ _id });
         const  { epic, title, description, isEvent, dateStart, dateEnd, eisenhower } = checkingTask;
+        const parentId = checkingTask.parentId?.[0];
 
-        const checkedTask = new Task({ _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
+        const checkedTask = new Task({ _id, epic, parentId, parentsTitles, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
         await Task.findByIdAndUpdate( _id, { $set: checkedTask }, { new: true } );
         res.status(201).json({ checkedTask })
     } catch (err) { res.status(500).json({ error: err.message }) }

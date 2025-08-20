@@ -261,7 +261,8 @@ div#root {
 
 #root {
     min-height: 100vh;
-    background-image: url('img/bg.jpg');
+    /* background-image: url('img/bg.jpg'); */
+    background-color: #222222;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -387,12 +388,6 @@ div.tasksList div.task,
 div.habitsPage div.frontHabits,
 div.habitsPage div.backHabits,
 div.habitsEdit {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    border-radius: 13px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-        0 2px 4px -1px rgba(0, 0, 0, 0.06);
     transition: all 0.3s ease;
 }
 
@@ -491,31 +486,7 @@ div.frontHabits div.habitsInfoBlock i.material-icons {
   padding: 0.25rem 0.5rem;
 }
 
-/* Стили подзадачи */
-
-div.task div.taskBlock2 div.subTask label,
-div.frontHabits div.habitsSubTasksBlock div.subTask label,
-div.backHabitsInfo div.subTask label {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 /* Стили привычек */
-div.habitsPage {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    background-color: rgba(22, 22, 22, 0.5);
-}
-
-div.habitsPage div.backHabits {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
-}
 
 div.backHabits i {
     height: 32px;
@@ -548,42 +519,10 @@ div.habitsEdit div.habitsSubTasksBlock {
     align-items: flex-start;
 }
 
-div.habitsEdit div.habitsSubTasksBlock {
-    margin: 13px;
-}
-
 div.frontHabits div.habitsSubTasksBlock div.noHabitsMessage {
     line-height: 32px;
     font-size: 22px;
     color: #e0e0e0;
-}
-
-div.habitsEdit {
-    width: 100%;
-}
-
-div.habitsEdit div.subTask {
-    height: 46px;
-}
-
-div.habitsEdit div.habitsSubTasksBlock > div:first-child {
-    margin-top: 0;
-}
-
-div.habitsEdit div.habitsSubTasksBlock > div:not(:first-child) {
-    margin-top: 13px;
-}
-
-div.habitsEdit div.subTask input {
-    margin-bottom: 0;
-}
-
-div.habitsEdit div.habitsButtons {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
 }
 
 div.habitsEdit div.habitsButtons > div:last-child > *:not(:first-child) {
@@ -596,8 +535,6 @@ div.modal#create {
 }
 
 div.createTask {
-    background-color: rgba(22, 22, 22, 0.5);
-    border-radius: 13px;
     box-shadow: 0px 0px 1.375rem 0.625rem rgba(255, 255, 255, 0.21),
         0px 0px 0.8125rem 0.3125rem rgba(255, 255, 255, 0.18),
         0px 0px 0.4375rem -0.125rem rgba(255, 255, 255, 0.3);
@@ -714,10 +651,6 @@ button.btn-flat:focus {
     background-color: transparent;
 }
 
-input#taskTitle {
-    width: 100%;
-}
-
 div.createTask div.input-block1 input.required,
 div.createTask div.input-block3 input.required {
     border-bottom-color: var(--epicColor);
@@ -743,7 +676,7 @@ div.fc div.fc-toolbar.fc-header-toolbar {
 
 div.fc table.fc-scrollgrid-liquid {
     border-top-left-radius: 13px;
-    backdrop-filter: blur(0.25rem);
+    background-color: rgba(22,22,22,0.5);
     border: none;
 }
 

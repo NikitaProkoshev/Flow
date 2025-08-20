@@ -15,37 +15,6 @@ var yesterday = new Date();
 yesterday.setDate(new Date(`${year}-${month}-${day}`).getDate() - 1);
 export const yesterdayString = yesterday.toLocaleDateString('ru-RU');
 
-export const epicToIcon = {
-    МегаФон: 'megafon',
-    РУДН: 'rudn',
-    Личное: (
-        <FaUser
-            className="epicIcon text-2xl leading-6 min-w-6 min-h-6"
-            id={'epicЛичноеIcon'}
-        />
-    ),
-    Семья: (
-        <FaUsers
-            className="epicIcon text-2xl leading-6 min-w-6 min-h-6"
-            id={'epicСемьяIcon'}
-        />
-    ),
-    Уля: (
-        <FaHeart
-            className="epicIcon text-2xl leading-6 min-w-6 min-h-6"
-            id={'epicУляIcon'}
-        />
-    ),
-    Поездки: (
-        <FaPlane 
-            className="epicIcon text-2xl leading-6 min-w-6 min-h-6"
-            id={'epicПоездкиIcon'}
-        />
-    ),
-    ФК_Краснодар: 'FC_Krasnodar',
-    Flow: 'logo',
-};
-
 export const epicToColor = {
     '': 'rgba(224, 224, 224,',
     МегаФон: 'rgba(0, 185, 86,',
@@ -58,16 +27,22 @@ export const epicToColor = {
     Flow: 'rgba(63, 204, 167,',
 };
 
-export function upDownSubTask(e, subTasks, subTask, setSubTasks) {
+export const epicToIcon = {
+    МегаФон: 'megafon',
+    РУДН: 'rudn',
+    Личное: <FaUser className="epicIcon text-2xl leading-6 min-w-6 min-h-6" id={'epicЛичноеIcon'} color={`${epicToColor['Личное']}1)`} />,
+    Семья: <FaUsers className="epicIcon text-2xl leading-6 min-w-6 min-h-6" id={'epicСемьяIcon'} color={`${epicToColor['Семья']}1)`} />,
+    Уля: <FaHeart className="epicIcon text-2xl leading-6 min-w-6 min-h-6" id={'epicУляIcon'} color={`${epicToColor['Уля']}1)`} />,
+    Поездки: <FaPlane className="epicIcon text-2xl leading-6 min-w-6 min-h-6" id={'epicПоездкиIcon'} color={`${epicToColor['Поездки']}1)`} />,
+    ФК_Краснодар: 'FC_Krasnodar',
+    Flow: 'logo',
+};
+
+export function upDownSubTask(target, subTasks, subTask, setSubTasks) {
     let subTasksCopy = subTasks.slice(0);
     const subTaskPos = subTasksCopy.indexOf(subTask);
-    const newSubTaskPos = e.target.classList.contains('upIcon')
-        ? subTaskPos - 1
-        : subTaskPos + 1;
-    [subTasksCopy[subTaskPos], subTasksCopy[newSubTaskPos]] = [
-        subTasksCopy[newSubTaskPos],
-        subTasksCopy[subTaskPos],
-    ];
+    const newSubTaskPos = target.classList.contains('upIcon') ? subTaskPos - 1 : subTaskPos + 1;
+    [subTasksCopy[subTaskPos], subTasksCopy[newSubTaskPos]] = [subTasksCopy[newSubTaskPos],subTasksCopy[subTaskPos]];
     setSubTasks(subTasksCopy);
 }
 

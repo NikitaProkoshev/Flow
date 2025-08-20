@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useContext, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useSideBar } from '../context/SideBarContext';
 import { FaHouse, FaRightFromBracket } from 'react-icons/fa6';
@@ -40,14 +40,11 @@ export const SideBar = () => {
     return (
         <div
             ref={sidebarRef}
-            className={`fixed m-4 rounded-2xl backdrop-blur-sm h-[calc(100%-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 ${isCollapsed ? 'w-12' : 'w-44'}`}
+            className={`fixed m-4 rounded-lg bg-[#161616] h-[calc(100%-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 ${isCollapsed ? 'w-12' : 'w-44'}`}
             id="sideBar"
         >
-            <div
-                className="flex items-center justify-between p-2"
-                onClick={() => { if (!isMobile()) setIsCollapsed(!isCollapsed) }}
-            >
-                <img className='size-8' id='Logo' src={`..\\img\\logo.png`} />
+            <div className="flex items-center p-2" onClick={() => (!isMobile()) && setIsCollapsed(!isCollapsed)}>
+                <img className='size-8' id='Logo' src={`..\\img\\logo.png`} alt='Logo' />
                 {!isCollapsed && <i className="val-font gradient-font">
                     <span className="text-2xl not-italic font-normal ml-2">FLOW</span>
                 </i>}
@@ -55,68 +52,43 @@ export const SideBar = () => {
 
             <nav className="border-t border-gray-700">
                 <Button
-                    className="epicOption text-base size-12 p-3 w-full justify-start"
                     id="homeButton"
-                    variant="ghost"
-                    colorPalette="gray"
+                    w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0'
+                    variant="ghost" colorPalette="gray"
                     onClick={() => navigate('/tasks')}
                 >
-                    <FaHouse className="w-6 h-6 flex-shrink-0 text-white" />
+                    <FaHouse className="size-6 shrink-0 text-white" />
                     <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>Дашборд</span>
                 </Button>
             </nav>
             <nav className="border-t border-gray-700 flex flex-col items-start">
                 {Object.keys(epicToIcon).map((epic) => (
                     <Button
-                        className={
-                            'epicOption text-base size-12 p-3 justify-start ' +
-                            (epics.includes(epic) ? 'selected grayscale-0' : 'grey-text text-darken-3 grayscale') +
-                            (isCollapsed ? ' w-12' : ' w-full')
-                        }
-                        id={'epic' + epic}
-                        variant="ghost"
-                        colorPalette="gray"
-                        value={epic}
-                        style={{ color: `${epicToColor[epic]}1)`}}
+                        className={`epicOption ${(epics.includes(epic) ? 'selected' : '')}`} id={'epic' + epic}
+                        w={isCollapsed ? 12 : '100%'} h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' color={`${epicToColor[epic]}1)`}
+                        filter={epics.includes(epic) ? 'grayscale(0%)' : 'grayscale(100%)'} borderWidth={0}
+                        variant="ghost" colorPalette="gray" value={epic}
                         onClick={epicsChanging}
                     >
                         {['МегаФон', 'РУДН', 'ФК_Краснодар', 'Flow'].includes(epic)
-                            ? <img
-                                    className="epicIcon size-6"
-                                    id={'epic' + epic + 'Icon'}
-                                    src={`..\\img\\${epicToIcon[epic]}.png`}
-                                    alt={epic}
-                                />
+                            ? <img className="epicIcon size-6" id={`epic${epic}Icon`} src={`..\\img\\${epicToIcon[epic]}.png`} alt={epic} />
                             : epicToIcon[epic]
                         }
-                        <span
-                            className={`hidden sm:inline transition-all duration-300 ${
-                                isCollapsed
-                                    ? 'overflow-hidden opacity-0 w-0'
-                                    : 'opacity-100'
-                            }`}
-                        >{epic.replace('_', ' ')}</span>
+                        <span className={`hidden sm:inline transition-all duration-300 ${isCollapsed ? 'overflow-hidden opacity-0 w-0' : 'opacity-100'}`}>
+                            {epic.replace('_', ' ')}</span>
                     </Button>
                 ))}
             </nav>
             <nav className="absolute bottom-0 w-full border-t border-gray-700">
                 <Button
-                    className="epicOption text-base size-12 p-3 justify-start"
                     id="logOutButton"
-                    variant="ghost"
-                    colorPalette="gray"
+                    w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0'
+                    variant="ghost" colorPalette="gray"
                     onClick={handleLogout}
                 >
-                    <FaRightFromBracket className="w-6 h-6 flex-shrink-0 text-white" />
-                    <span
-                        className={`font-medium transition-all duration-300 ${
-                            isCollapsed
-                                ? 'opacity-0 w-0 overflow-hidden'
-                                : 'opacity-100 w-auto'
-                        }`}
-                    >
-                        Выйти
-                    </span>
+                    <FaRightFromBracket className="size-6 shrink-0 text-white" />
+                    <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>
+                        Выйти</span>
                 </Button>
             </nav>
         </div>
