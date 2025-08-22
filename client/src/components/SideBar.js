@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useSideBar } from '../context/SideBarContext';
 import { FaHouse, FaRightFromBracket } from 'react-icons/fa6';
+import { BsCalendar3Event, BsCalendar3Week, BsCalendar3 } from 'react-icons/bs';
 import { Button } from '@chakra-ui/react';
 import { epicToIcon, epicToColor } from '../methods';
 import { EpicsContext } from '../App';
@@ -15,6 +16,8 @@ export const SideBar = () => {
     const { logout } = useContext(AuthContext);
     const sidebarRef = useRef(null);
     const isMobile = () => window.innerWidth <= 768;
+    let isButtonDown = false;
+    var holdTimer;
 
     // Автоматически сворачивать на мобильных
     useEffect(() => {
@@ -26,21 +29,19 @@ export const SideBar = () => {
         navigate('/');
     };
 
-    const epicsChanging = async (event) => {
-        let target = event.target.closest('.epicOption');
+    const epicsChanging = async (event, only) => {
+        let target = event.target.closest('.epicOptionFilter');
         let epicsCopy = epics.slice(0);
-        if (target.classList.contains('selected')) {
-            epicsCopy.splice(epicsCopy.indexOf(target.value), 1);
-        } else {
-            epicsCopy.push(target.value);
-        }
+        if (only) return setEpics([target.value])
+        if (target.classList.contains('selected')) epicsCopy.splice(epicsCopy.indexOf(target.value), 1);
+        else epicsCopy.push(target.value)
         setEpics(epicsCopy);
     };
 
     return (
         <div
             ref={sidebarRef}
-            className={`fixed m-4 rounded-lg bg-[#161616] h-[calc(100%-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 ${isCollapsed ? 'w-12' : 'w-44'}`}
+            className={`fixed m-4 rounded-2xl bg-[#161616] h-[calc(100%-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 ${isCollapsed ? 'w-12' : 'w-44'}`}
             id="sideBar"
         >
             <div className="flex items-center p-2" onClick={() => (!isMobile()) && setIsCollapsed(!isCollapsed)}>
@@ -57,25 +58,44 @@ export const SideBar = () => {
                     variant="ghost" colorPalette="gray"
                     onClick={() => navigate('/tasks')}
                 >
-                    <FaHouse className="size-6 shrink-0 text-white" />
-                    <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>Дашборд</span>
+                    <FaHouse className="text-white min-w-6 min-h-6" />
+                    <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>Главная</span>
                 </Button>
+                { [{ i: BsCalendar3Event, t: 'Сегодня', n: '/today'}, { i: BsCalendar3Week, t: 'Неделя', n: '/week'}, { i: BsCalendar3, t: 'Месяц', n: '/month'}].map(btn => (
+                    <Button
+                        w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0'
+                        variant="ghost" colorPalette="gray" onClick={() => navigate(btn.n)}
+                    >
+                        <btn.i className="text-white min-w-6 min-h-6" />
+                        <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>{btn.t}</span>
+                    </Button>
+                ))}
             </nav>
             <nav className="border-t border-gray-700 flex flex-col items-start">
                 {Object.keys(epicToIcon).map((epic) => (
                     <Button
-                        className={`epicOption ${(epics.includes(epic) ? 'selected' : '')}`} id={'epic' + epic}
+                        className={`epicOptionFilter ${(epics.includes(epic) ? 'selected' : '')}`} id={'epic' + epic}
                         w={isCollapsed ? 12 : '100%'} h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' color={`${epicToColor[epic]}1)`}
                         filter={epics.includes(epic) ? 'grayscale(0%)' : 'grayscale(100%)'} borderWidth={0}
                         variant="ghost" colorPalette="gray" value={epic}
-                        onClick={epicsChanging}
+                        onMouseDown={(e) => {
+                            isButtonDown = true;
+                            holdTimer = setTimeout(() => {if (isButtonDown) epicsChanging(e, true) }, 500);
+                        }}
+                        onTouchStart={(e) => {
+                            isButtonDown = true;
+                            holdTimer = setTimeout(() => {if (isButtonDown) epicsChanging(e, true) }, 500);
+                        }}
+                        onMouseUp={(e) => {
+                            isButtonDown = false;
+                            if (holdTimer) epicsChanging(e);
+                        }}
                     >
                         {['МегаФон', 'РУДН', 'ФК_Краснодар', 'Flow'].includes(epic)
                             ? <img className="epicIcon size-6" id={`epic${epic}Icon`} src={`..\\img\\${epicToIcon[epic]}.png`} alt={epic} />
                             : epicToIcon[epic]
                         }
-                        <span className={`hidden sm:inline transition-all duration-300 ${isCollapsed ? 'overflow-hidden opacity-0 w-0' : 'opacity-100'}`}>
-                            {epic.replace('_', ' ')}</span>
+                        <span className={`hidden sm:inline transition-all duration-300 ${isCollapsed ? 'overflow-hidden opacity-0 w-0' : 'opacity-100'}`}>{epic.replace('_', ' ')}</span>
                     </Button>
                 ))}
             </nav>
@@ -86,7 +106,7 @@ export const SideBar = () => {
                     variant="ghost" colorPalette="gray"
                     onClick={handleLogout}
                 >
-                    <FaRightFromBracket className="size-6 shrink-0 text-white" />
+                    <FaRightFromBracket className="text-white min-w-6 min-h-6" />
                     <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>
                         Выйти</span>
                 </Button>

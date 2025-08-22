@@ -4,45 +4,38 @@ import { AuthContext } from '../context/AuthContext';
 import { EpicsContext } from '../App';
 import { TasksList } from '../components/TasksList';
 import { dateToString, todayString, yesterdayString, epicToIcon, epicToColor, checkingSome } from '../methods';
-import { CreateTask } from '../components/CreateTask';
 import { Habits } from '../components/Habits';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { ButtonGroup, Button, IconButton, Checkbox } from '@chakra-ui/react';
-import { FaAngleLeft, FaAngleRight, FaPlus } from 'react-icons/fa6';
+import { Checkbox, Box } from '@chakra-ui/react';
 
-export const TasksPage = () => {
+export const TasksPage = ({ period }) => {
     const [tasks, setTasks] = useState([]);
-    var habits, events, todayTasks, weekTasks, nextWeekTasks;
-    const [creatingTask, setCreatingTask] = useState(false);
+    var habits, events, tasksA, tasksB, tasksC, tasksD;
     const [taskEdit, setTaskEdit] = useState('');
     const [checkingTask, setCheckingTask] = useState('');
     const [deletingTask, setDeletingTask] = useState('');
-    const [isTodayVisible, setIsTodayVisible] = useState(true);
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
-    const [epics, setEpics] = useContext(EpicsContext);
+    const [ epics ] = useContext(EpicsContext);
     const calendarRef = useRef(null);
-    document.documentElement.style.setProperty('--fc-today-bg-color', 'rgba(22,22,22)');
-    document.documentElement.style.setProperty('--epicsCount', Object.keys(epicToIcon).length);
-    document.documentElement.style.setProperty('--tasksLength', Math.round((Object.keys(epicToIcon).length / 10) * 6));
-    document.documentElement.style.setProperty('--otherLength', Math.round(Object.keys(epicToIcon).length - (Object.keys(epicToIcon).length / 10) * 6));
+    
 
-    const today = new Date(), week = new Date(), nextWeek = new Date(), minusMonth = new Date();
-    week.setDate(week.getDate() + 7);
-    nextWeek.setDate(nextWeek.getDate() + 14);
+    const minusMonth = new Date();
     minusMonth.setMonth(minusMonth.getMonth() - 1);
 
     const fetchTasks = useCallback(async () => {
         try {
-            const fetched = await request('/api/task', 'GET', null, { Authorization: `Bearer ${token}` });
+            console.log(period);
+            const fetched = await request('/api/task', 'GET', null, { Authorization: `Bearer ${token}`, period: period });
+            console.log(fetched);
             setTasks(fetched);
         } catch (e) {}
-    }, [token, request]);
+    }, [token, request, period]);
 
     useEffect(() => {
-        if (!creatingTask && taskEdit === '' && checkingTask === '') fetchTasks();
-    }, [fetchTasks, creatingTask, taskEdit, checkingTask, deletingTask]);
+        if (taskEdit === '' && checkingTask === '') fetchTasks();
+    }, [fetchTasks, taskEdit, checkingTask, deletingTask, period]);
 
     function eventsToCalendar(events) {
         return events && events.map((event) => {
@@ -59,80 +52,78 @@ export const TasksPage = () => {
         });
     }
 
-    const sortFunc = (a, b) => {
-        const typeOrder = { A: 1, B: 2, C: 3, D: 4 };
-        const typeDifference =
-            typeOrder[a.eisenhower] - typeOrder[b.eisenhower];
-        if (typeDifference !== 0) {
-            return typeDifference;
-        }
-        return new Date(a.dateEnd) - new Date(b.dateEnd);
-    };
-
-    const handleDatesSet = useCallback((dateInfo) => {
-        setIsTodayVisible(today >= dateInfo.view.activeStart && today < dateInfo.view.activeEnd);
-    }, [today]);
-
     function splitTasks(tasks) {
         var tasksCopy = JSON.parse(JSON.stringify(tasks));
         habits = tasksCopy.filter(task => [`Привычки_${yesterdayString}`, `Привычки_${todayString}`, 'Привычки_шаблон'].includes(task.title) && task.epic === 'Привычки');
         tasksCopy = tasksCopy.filter(task => task.epic !== 'Привычки' && epics.includes(task.epic));
         events = tasksCopy.filter(task => task.isEvent);
         tasksCopy = tasksCopy.filter(task => !task.isEvent);
-        todayTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(today) || dateToString(task.dateEnd) <= dateToString(today))
-        tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(today) || dateToString(task.dateEnd) <= dateToString(today)))
-        weekTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(week) || dateToString(task.dateEnd) <= dateToString(week))
-        tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(week) || dateToString(task.dateEnd) <= dateToString(week)))
-        nextWeekTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(nextWeek) || dateToString(task.dateEnd) <= dateToString(nextWeek))
-        tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(nextWeek) || dateToString(task.dateEnd) <= dateToString(nextWeek)))
-        return <></>
+        tasksA = tasksCopy.filter(task =>  task.eisenhower === 'A')
+        tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'A')
+        tasksB = tasksCopy.filter(task =>  task.eisenhower === 'B')
+        tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'B')
+        tasksC = tasksCopy.filter(task =>  task.eisenhower === 'C')
+        tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'C')
+        tasksD = tasksCopy.filter(task =>  task.eisenhower === 'D')
+        tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'D')
     }
 
     return (
-        <div className={`grid grid-cols-${Object.keys(epicToIcon).length} gap-8 w-full p-4 items-start sm:px-8`} id="tasksDashBoard">
+        <div className={`grid grid-cols-${Object.keys(epicToIcon).length} lg:h-[${'calc('+document.getElementById('block2')?.clientHeight +'px+2rem)'}] min-h-[100vh] lg:grid-rows-2 gap-8 w-full p-4 items-start sm:px-8`} id="tasksDashBoard">
+            {console.log(document.getElementById('block2')?.clientHeight)}
             {Object.keys(tasks).length !== 0 && splitTasks(tasks)}
-            <div className="col-span-8 lg:col-span-5" id="block1">
-                <div id="subBlock1-1">
-                    <h2 className="gradient-font text-3xl">Сегодня</h2>
-                    {!creatingTask && (
-                        <Button
-                            id="createTask"
-                            bgGradient="to-br" gradientFrom="#42e695" gradientTo="#3bb2b8" rounded='lg'
-                            variant="solid" colorPalette="gray" size="md"
-                            onClick={(e) => setCreatingTask(true)}
-                        ><FaPlus className="text-2xl text-[#e0e0e0]" />Новая задача</Button>
-                    )}
-                </div>
-                {creatingTask && <CreateTask state={setCreatingTask} allTasks={tasks.filter((task) => task.epic !== 'Привычки')} />}
-                <TasksList
-                    editState={[taskEdit, setTaskEdit]}
-                    checkingState={[checkingTask, setCheckingTask]}
-                    deletingState={[deletingTask, setDeletingTask]}
-                    allTasks={tasks}
-                    tasks={todayTasks?.filter((task) => !task.status).sort(sortFunc)}
-                    doneTasks={todayTasks?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
-                />
-                <h2 className="gradient-font text-3xl">Неделя</h2>
-                <TasksList
-                    editState={[taskEdit, setTaskEdit]}
-                    checkingState={[checkingTask, setCheckingTask]}
-                    deletingState={[deletingTask, setDeletingTask]}
-                    allTasks={tasks}
-                    tasks={weekTasks?.filter((task) => !task.status).sort(sortFunc)}
-                    doneTasks={weekTasks?.filter((task) => task.status)}
-                />
-                <h2 className="gradient-font text-3xl">Следующая неделя</h2>
-                <TasksList
-                    editState={[taskEdit, setTaskEdit]}
-                    checkingState={[checkingTask, setCheckingTask]}
-                    deletingState={[deletingTask, setDeletingTask]}
-                    allTasks={tasks}
-                    tasks={nextWeekTasks?.filter(task => !task.status).sort(sortFunc)}
-                    doneTasks={nextWeekTasks?.filter(task => task.status)}
-                />
+            <div className="col-span-8 lg:row-span-2 lg:col-span-6 grid grid-cols-subgrid lg:grid-rows-subgrid gap-0 h-full" id="block1">
+                <Box className='col-span-8 lg:col-span-3' overflowY='auto' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616' lg={{ pr: 4, pb: 4 }}>
+                    <h2 className="gradient-font text-3xl w-full text-center">A</h2>
+                    <TasksList
+                        editState={[taskEdit, setTaskEdit]}
+                        checkingState={[checkingTask, setCheckingTask]}
+                        deletingState={[deletingTask, setDeletingTask]}
+                        allTasks={tasks}
+                        tasks={tasksA?.filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))}
+                        doneTasks={tasksA?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
+                        eisenhower={false}
+                    />
+                </Box>
+                <Box className='col-span-8 lg:col-span-3' maxH='75vh' overflowY='auto' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616' lg={{ pl: 4, pb: 4 }}>
+                    <h2 className="gradient-font text-3xl w-full text-center">B</h2>
+                    <TasksList
+                        editState={[taskEdit, setTaskEdit]}
+                        checkingState={[checkingTask, setCheckingTask]}
+                        deletingState={[deletingTask, setDeletingTask]}
+                        allTasks={tasks}
+                        tasks={tasksB?.filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))}
+                        doneTasks={tasksB?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
+                        eisenhower={false}
+                    />
+                </Box>
+                <Box className='col-span-8 sm:col-span-3' maxH='75vh' overflowY='auto' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616' lg={{ pr: 4, pt: 4 }}>
+                    <h2 className="gradient-font text-3xl w-full text-center">C</h2>
+                    <TasksList
+                        editState={[taskEdit, setTaskEdit]}
+                        checkingState={[checkingTask, setCheckingTask]}
+                        deletingState={[deletingTask, setDeletingTask]}
+                        allTasks={tasks}
+                        tasks={tasksC?.filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))}
+                        doneTasks={tasksC?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
+                        eisenhower={false}
+                    />
+                </Box>
+                <Box className='col-span-8 sm:col-span-3' maxH='75vh' overflowY='auto' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616' lg={{ pl: 4, pt: 4 }}>
+                    <h2 className="gradient-font text-3xl w-full text-center">D</h2>
+                    <TasksList
+                        editState={[taskEdit, setTaskEdit]}
+                        checkingState={[checkingTask, setCheckingTask]}
+                        deletingState={[deletingTask, setDeletingTask]}
+                        allTasks={tasks}
+                        tasks={tasksD?.filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))}
+                        doneTasks={tasksD?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
+                        eisenhower={false}
+                    />
+                </Box>
             </div>
-            <div id="block2" className="col-span-7 lg:col-span-3">
-                <h2 className="gradient-font text-3xl">Привычки</h2>
+            <div className="col-span-8 lg:col-span-2 lg:row-span-2" id="block2">
+                <h2 className="gradient-font text-3xl h-10">Привычки</h2>
                 <Habits
                     editState={[taskEdit, setTaskEdit]}
                     checkingState={[checkingTask, setCheckingTask]}
@@ -140,22 +131,21 @@ export const TasksPage = () => {
                     yesterdayTask={habits?.filter(task => task.title ===`Привычки_${yesterdayString}`)[0]}
                     templateTask={habits?.filter(task => task.title === 'Привычки_шаблон')[0]}
                 />
-                <div className="eventsPage">
-                    <h2 className="gradient-font text-3xl">Мероприятия</h2>
-                    <ButtonGroup variant="ghost" spacing="0" backgroundColor='#161616' rounded='lg' gap={0}>
-                        <IconButton colorPalette="gray" onClick={() => calendarRef.current.getApi().prev()}>
-                            <FaAngleLeft className="text-2xl text-[#e0e0e0]" /></IconButton>
-                        <Button colorPalette="gray" disabled={isTodayVisible} onClick={() => calendarRef.current.getApi().today()}>
-                            <p className={`text-2xl${!isTodayVisible ? ' text-[#e0e0e0]' : ''}`}>Сегодня</p></Button>
-                        <IconButton colorPalette="gray" onClick={() => calendarRef.current.getApi().next()}>
-                            <FaAngleRight className="text-2xl text-[#e0e0e0]" /></IconButton>
-                    </ButtonGroup>
-                </div>
-                <FullCalendar
+                <h2 className="gradient-font text-3xl h-10">Мероприятия</h2>
+                <TasksList
+                    editState={[taskEdit, setTaskEdit]}
+                    checkingState={[checkingTask, setCheckingTask]}
+                    deletingState={[deletingTask, setDeletingTask]}
+                    allTasks={tasks}
+                    tasks={events?.filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))}
+                    doneTasks={events?.filter((task) => task.status && dateToString(task.dateEnd) >= dateToString(minusMonth))}
+                    eisenhower={false}
+                />
+                {/* <FullCalendar
                     ref={calendarRef} plugins={[timeGridPlugin]} initialView="fourDay" locale="rulocale" slotMinTime="09:00:00" slotMaxTime="22:30:00"
                     contentHeight={1080} expandRows={true} headerToolbar={false} slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
                     dayHeaderFormat={{ weekday: 'long', month: '2-digit', day: '2-digit' }}
-                    views={{ fourDay: { type: 'timeGrid', duration: { days: 4 }, buttonText: '4 days' } }}
+                    views={{ fourDay: { type: 'timeGrid', duration: { days: 1 }, buttonText: '4 days' } }}
                     eventContent={arg => (
                         <div className={`custom-event p-1 text-[#e0e0e0]${arg.event.extendedProps.status ? ' grayscale' : ''}`}>
                             <Checkbox.Root
@@ -170,8 +160,7 @@ export const TasksPage = () => {
                         </div>
                     )}
                     events={eventsToCalendar(events)}
-                    datesSet={handleDatesSet}
-                />
+                /> */}
             </div>
         </div>
     );

@@ -357,33 +357,6 @@ i.epicIcon#epicFlowIcon {
 
 /* Стили для TasksPage */
 
-div#tasksDashBoard div#epicsBlock {
-    width: 100%;
-    margin-bottom: 36px;
-}
-
-div#tasksDashBoard button.epicOption > * {
-    filter: grayscale(1);
-}
-
-div#tasksDashBoard button.epicOption.selected > * {
-    filter: grayscale(0);
-}
-
-div#tasksDashBoard > div#tasksBlock {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
-}
-
-div#tasksDashBoard #block1 #subBlock1-1 {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-
 div.tasksList div.task,
 div.habitsPage div.frontHabits,
 div.habitsPage div.backHabits,
@@ -399,32 +372,12 @@ div.habitsPage div.backHabits:hover {
         0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-div.tasksList div.task {
-    background-color: rgba(22, 22, 22, 0.5);
-}
-
-div.tasksList div.task.doneTask {
-    filter: grayscale(1);
-    background-color: rgba(33, 33, 33, 0.22);
-}
-
 div.tasksList div.task.doneTask * {
     color: #bdbdbd;
 }
 
-div.task div.taskBlock1 {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-}
-
 div.tasksList div.task.doneTask div.taskBlock1 {
     background-color: rgba(33, 33, 33, 0.22);
-}
-
-div.task div.taskBlock2 {
-    margin-left: 3.5rem;
 }
 
 div.tasksList div.task div.taskCheckerBlock span {

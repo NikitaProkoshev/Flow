@@ -1,17 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useHttp } from '../hooks/http.hook';
-import { useMessage } from '../hooks/message.hook';
 import { todayString, yesterdayString } from '../methods';
 import { AuthContext } from '../context/AuthContext';
 import { upDownSubTask } from '../methods';
 import { FaPen, FaChevronLeft, FaChevronUp, FaChevronDown, FaChevronRight, FaXmark, FaPlus } from 'react-icons/fa6';
 import { Checkbox, Input, Button, IconButton } from '@chakra-ui/react';
+import { toaster } from './ui/toaster';
 
 export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, templateTask, }) => {
     const auth = useContext(AuthContext);
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
-    const message = useMessage();
     const [subTasks, setSubTasks] = useState([]);
     const [frontDay, setFrontDay] = useState(todayString);
 
@@ -56,7 +55,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
             const newTodaySubTask = syncSubTasks(todayTask.subTasks, subTasks);
             const frontData = await request(`/api/task/habits/${todayTask._id}`, 'PUT', { ...todayTask, subTasks: newTodaySubTask }, { Authorization: `Bearer ${auth.token}` });
             if (frontData) {
-                message('Задача обновлена!', 'OK');
+                toaster.create({ description: 'Задача обновлена!', type: 'success' })
                 editState[1]('');
             }
         } catch (e) {}
@@ -68,20 +67,20 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
     };
 
     return (
-        <div className="habitsPage my-8 rounded-lg bg-[rgba(22,22,22,0.5)]">
+        <div className="habitsPage my-4 rounded-2xl bg-[rgba(22,22,22,0.5)]">
             {editState[0] !== 'Привычки_шаблон'
-                ? <div className="backHabits flex flex-row rounded-lg">
+                ? <div className="backHabits flex flex-row">
                     {frontDay === todayString && (
                         <div className="backHabitsInfo flex flex-col items-center">
-                            <div className="h-8 m-4 mb-2 flex flex-row items-center" onClick={(e) => setFrontDay(yesterdayString)}>
+                            <IconButton variant="ghost" colorPalette='gray' m={2} mt={4} onClick={(e) => setFrontDay(yesterdayString)}>
                                 <FaChevronLeft className="text-2xl text-[#e0e0e0]" />
-                            </div>
+                            </IconButton>
                             {yesterdayTask &&
                                 yesterdayTask.subTasks.map((subTask) => (
                                     <div className="subTask my-2">
                                         <Checkbox.Root
                                             w={4} h={4} size="md" spacing="1rem" variant='outline' colorPalette='green'
-                                            disabled={true} defaultChecked={subTask.status && 'checked'}
+                                            disabled={true} defaultChecked={subTask.status}
                                         >
                                             <Checkbox.HiddenInput />
                                             <Checkbox.Control w={4} h={4} />
@@ -90,10 +89,10 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                                 ))}
                         </div>
                     )}
-                    <div className="frontHabits w-full p-4 bg-[#161616] rounded-lg">
+                    <div className="frontHabits w-full p-4 bg-[#161616] rounded-2xl">
                         <div className="habitsInfoBlock w-full">
                             <h3 className="text-2xl w-full">{frontDay === todayString ? 'Сегодня' : 'Вчера'}</h3>
-                            <FaPen className="text-[1.5rem] text-[#e0e0e0] ml-4" onClick={(e) => editState[1]('Привычки_шаблон')} />
+                            <IconButton variant="ghost" colorPalette='gray' onClick={(e) => editState[1]('Привычки_шаблон')}><FaPen className="text-[1.5rem] text-[#e0e0e0]"/></IconButton>
                         </div>
                         <div className="habitsSubTasksBlock grid grid-rows-auto gap-2 mt-3">
                             {[0, undefined].includes(subTasks?.length)
@@ -103,7 +102,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                                         <Checkbox.Root
                                             w='100%' h={4} fontSize='xl' size="md" spacing="1rem" variant='outline' colorPalette='green'
                                             onCheckedChange={ (e) => checkingSubTask(e, frontDay === todayString ? todayTask : yesterdayTask, subTask) }
-                                            defaultChecked={subTask.status && 'checked'}
+                                            checked={subTask.status}
                                         >
                                             <Checkbox.HiddenInput />
                                             <Checkbox.Control w={4} h={4} />
@@ -116,15 +115,15 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                     </div>
                     {frontDay === yesterdayString && (
                         <div className="backHabitsInfo flex flex-col items-center">
-                            <div className="h-8 m-4 mb-2 flex flex-row items-center" onClick={(e) => setFrontDay(todayString)}>
+                            <IconButton variant="ghost" colorPalette='gray' m={2} mt={4} onClick={(e) => setFrontDay(todayString)}>
                                 <FaChevronRight className="text-2xl text-[#e0e0e0]" />
-                            </div>
+                            </IconButton>
                             {todayTask !== undefined &&
                                 todayTask.subTasks.map((subTask) => 
                                     <div className="subTask my-2">
                                         <Checkbox.Root
                                             w={4} h={4} size="md" spacing="1rem" variant='outline' colorPalette='green'
-                                            disabled={true} defaultChecked={subTask.status && 'checked'}
+                                            disabled={true} defaultChecked={subTask.status}
                                         >
                                             <Checkbox.HiddenInput />
                                             <Checkbox.Control w={4} h={4} />
@@ -168,7 +167,7 @@ export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, tem
                                     </div>
                                 );
                             })}
-                        <div className="habitsButtons flex w-full">
+                        <div className="habitsButtons flex justify-between w-full">
                             <Button className="newSubTask" variant="ghost" colorPalette='gray' size='sm' onClick={newSubTask}>
                                 <FaPlus className="text-2xl text-[#e0e0e0]" />Добавить подзадачу</Button>
                             <div>

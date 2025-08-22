@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useHttp } from '../hooks/http.hook';
 import { useMessage } from '../hooks/message.hook';
 import { AuthContext } from '../context/AuthContext';
+import { toaster } from '../components/ui/toaster';
 
 export const AuthPage = () => {
     const auth = useContext(AuthContext);
@@ -23,10 +24,8 @@ export const AuthPage = () => {
 
     const registerHandler = async () => {
         try {
-            const data = await request('/api/auth/register', 'POST', {
-                ...form,
-            });
-            message(data.message);
+            const data = await request('/api/auth/register', 'POST', { ...form });
+            toaster.create(data.toaster);
         } catch (e) {}
     };
 

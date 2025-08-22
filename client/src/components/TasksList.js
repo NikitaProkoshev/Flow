@@ -7,7 +7,7 @@ import { epicToIcon, epicToColor, checkingSome } from '../methods';
 import { Checkbox, ButtonGroup, IconButton, Button, Badge } from '@chakra-ui/react';
 import { FaPen, FaArrowRight, FaTrash, FaEllipsis, FaChevronUp, FaChevronDown } from 'react-icons/fa6';
 
-export const TasksList = ({ editState, checkingState, deletingState, allTasks, tasks, doneTasks }) => {
+export const TasksList = ({ editState, checkingState, deletingState, allTasks, tasks, doneTasks, eisenhower }) => {
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
     const [showDone, setShowDone] = useState(false);
@@ -17,7 +17,6 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
         const { _id, status, subTasks } = task;
         let subTasksCopy = subTasks.slice(0);
         var sT_id;
-        // var newSubTasks = [];
         const newSubTasks = subTasksCopy.map((sT) => {
             if (sT._id === subTask._id) {
                 sT_id = subTask._id;
@@ -53,13 +52,13 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
 
         const formatDate = (date, showYear = false) => date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', ...(showYear && { year: 'numeric' }) });
 
-        if (!dateStart) {
+        if (!dateStart || dateStart?.getFullYear() === 1970) {
             return (
-                <div className="flex items-center space-x-2 text-gray-300">
-                    <span className="text-2xl font-medium"> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>
-                    {dateEnd.getHours() !== 0 ||
+                <div className="flex items-center space-x-2 text-[#a0a0a0]">
+                    <span className="text-md font-medium"> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>
+                    {dateEnd.getHours() !== 3 ||
                         (dateEnd.getMinutes() !== 0 && (
-                            <><span className="text-gray-500">•</span><span className="text-2xl">{formatTime(dateEnd)}</span></>
+                            <><span className="text-[#a0a0a0]">•</span><span className="text-md">{formatTime(dateEnd)}</span></>
                         ))}
                 </div>
             );
@@ -67,35 +66,21 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
 
         const sameDay = dateStart.toDateString() === dateEnd.toDateString();
         return (
-            <div className="flex items-center space-x-2 text-gray-300">
+            <div className="flex items-center space-x-2 text-[#a0a0a0]">
                 <div className="flex items-center space-x-1">
-                    <span className="text-2xl font-medium">
-                        {isToday(dateStart) ? 'Сегодня' : formatDate(dateStart, dateStart.getFullYear() !== today.getFullYear())}
-                    </span>
-                    {(dateStart.getHours() !== 0 || dateStart.getMinutes() !== 0) && 
-                        <><span className="text-gray-500">•</span><span className="text-2xl">{formatTime(dateStart)}</span></>
-                    }
+                    <span className="text-md font-medium">{isToday(dateStart) ? 'Сегодня' : formatDate(dateStart, dateStart.getFullYear() !== today.getFullYear())}</span>
+                    {(dateStart.getHours() !== 3 || dateStart.getMinutes() !== 0) && <><span className="text-gray-500">•</span><span className="text-md">{formatTime(dateStart)}</span></>}
                 </div>
-                <FaArrowRight className="text-gray-500 text-xl" />
+                <FaArrowRight className="text-[#a0a0a0] text-md" />
                 <div className="flex items-center space-x-1">
-                    {!sameDay && (
-                        <span className="text-2xl font-medium">
-                            {isToday(dateEnd)
-                                ? 'Сегодня'
-                                : formatDate(
-                                      dateEnd,
-                                      dateEnd.getFullYear() !==
-                                          today.getFullYear()
-                                  )}
-                        </span>
-                    )}
-                    {(dateEnd.getHours() !== 0 ||
+                    {!sameDay && (<span className="text-md font-medium">{isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear() )}</span>)}
+                    {(dateEnd.getHours() !== 3 ||
                         dateEnd.getMinutes() !== 0) && (
                         <>
                             {!sameDay && (
-                                <span className="text-gray-500">•</span>
+                                <span className="text-[#a0a0a0]">•</span>
                             )}
-                            <span className="text-2xl">
+                            <span className="text-md">
                                 {formatTime(dateEnd)}
                             </span>
                         </>
@@ -106,12 +91,12 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
     }
 
     return (
-        <div className="tasksList">
+        <div className='tasksList'>
             {![0, undefined].includes(tasks?.length)
             ? tasks.map((task) => {
                 if (editState[0] !== task._id) {
-                    return <div key={task._id} className="task my-4 rounded-2xl pb-[1px]">
-                        <div className="taskBlock1 bg-[#161616] rounded-2xl">
+                    return <div key={task._id} className="task my-4 rounded-2xl pb-[1px] bg-[rgba(22,22,22,0.5)]">
+                        <div className="taskBlock1 bg-[#161616] rounded-2xl flex items-center">
                             <div className="taskCheckerBlock ml-4 mr-2">
                                 <Checkbox.Root
                                     w={6} h={6} variant='outline' colorPalette='green'
@@ -124,43 +109,47 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
                             </div>
                             <div className="taskInfoBlock mx-2 my-4">
                                 <div className="taskSubBlock" id="subBlock1">
-                                    <Badge
-                                        w={6} h={6} px={2} py={1} rounded='md' mr={2} textAlign='center' fontSize='xs' lineHeight='1'
+                                    {eisenhower && <Badge
+                                        w={6} h={6} px={2} py={1} rounded='md' mr={3} textAlign='center' fontSize='xs' lineHeight='1'
                                         variant='subtle' colorPalette={getEisenhowerColor[task.eisenhower]}
-                                    >{task.eisenhower}</Badge>
+                                    >{task.eisenhower}</Badge>}
                                     {['МегаФон','РУДН','ФК_Краснодар','Flow'].includes(task.epic)
                                         ? <img className="epicIcon size-6" src={`..\\img\\${epicToIcon[task.epic]}.png`} alt={task.epic} />
                                         : epicToIcon[task.epic]
                                     }
                                     {task.parentsTitles && <Badge
-                                        h={6} px={2} py={1} rounded='md' ml={2} textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0'
+                                        h={6} px={2} py={1} rounded='md' ml={3} textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0'
                                         variant='outline' colorPalette='gray'
                                     >{task.parentsTitles}</Badge>}
-                                    <h3 className="text-2xl ml-2">{task.title}</h3>
+                                    <h3 className="text-xl ml-3 text-[#e0e0e0]">{task.title}</h3>
                                 </div>
+                                {task.description
+                                    ? <div className="taskSubBlock mt-3" id="subBlock3"><h3 className="text-lg text-[#c0c0c0]">{task.description}</h3></div>
+                                    : <div className='m-0' />
+                                }
                                 <div className="taskSubBlock mt-3" id="subBlock2">
-                                    <div className="text-lg">
+                                    <div className="text-md">
                                         {formatDateDisplay(task.dateStart ? new Date(task.dateStart) : undefined,new Date(task.dateEnd))}
                                     </div>
                                 </div>
-                                {task.description
-                                    ? <div className="taskSubBlock mt-3" id="subBlock3"><h3 className="text-2xl">{task.description}</h3></div>
-                                    : <div style={{ margin: 0 }} />
-                                }
                             </div>
                                 {editMenuTaskId === task._id
-                                    ? <ButtonGroup w={10} mr={2} variant="ghost" orientation='vertical' spacing="3">
+                                    ? <ButtonGroup className='taskControlButtons' w={10} mr={2} variant="ghost" orientation='vertical' spacing="3">
                                         <IconButton rounded='lg' colorPalette='gray' onClick={() => {setEditMenuTaskId(null); editState[1](task._id)}}>
                                             <FaPen className="text-2xl text-[#e0e0e0] leading-6 min-w-6 min-h-6" /></IconButton>
                                         <IconButton rounded='lg' colorPalette='gray' onClick={() => deleteTask(task._id)}>
                                             <FaTrash className="text-2xl text-[#e0e0e0] leading-6 min-w-6 min-h-6" /></IconButton>  
                                     </ButtonGroup>
-                                : <IconButton mr={2} rounded='lg' variant="ghost" colorPalette='gray' onClick={() => setEditMenuTaskId(task._id)}>
-                                    <FaEllipsis className="text-[1.5rem] text-[#e0e0e0] cursor-pointer" /></IconButton>
+                                    : <IconButton mr={2} rounded='lg' variant="ghost" colorPalette='gray'
+                                        onClick={() => {
+                                            document.addEventListener('mousedown', event => { !event.target.closest('.taskControlButtons') && setEditMenuTaskId(null) }, { once: true })
+                                            setEditMenuTaskId(task._id);
+                                        }}
+                                    ><FaEllipsis className="text-[1.5rem] text-[#e0e0e0] cursor-pointer" /></IconButton>
                                 }
                         </div>
                         {task.subTasks.length !== 0 && 
-                            <div className="taskBlock2 rounded-2xl my-3 ml-14">
+                            <div className="taskBlock2 my-3 ml-14">
                                 <div className="taskSubTasksBlock">
                                     {task.subTasks.map((subTask) => (
                                         <div key={subTask._id} className="subTask my-3">
@@ -172,7 +161,7 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
                                                 <Checkbox.HiddenInput />
                                                 <Checkbox.Control w={6} h={6} />
                                             </Checkbox.Root>
-                                            <p className="text-lg ml-3">{subTask.name}</p>
+                                            <p className="text-md ml-3">{subTask.name}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -180,17 +169,17 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
                         }
                     </div>
                 } else { return <CreateTask state={editState[1]} allTasks={allTasks} task={task} /> }})
-            : <p className="center">Пока задач нет(</p>}
+            : <h3 className="text-2xl text-center">Пока задач нет</h3>}
             {![0, undefined].includes(doneTasks?.length) && (
                 <>
-                    <Button id="showDoneTasks" fontSize='md' color='#e0e0e0' variant="ghost" colorPalette='gray' onClick={(e) => setShowDone(!showDone)}>
+                    <Button id="showDoneTasks" fontSize='md' color='#a0a0a0' variant="ghost" colorPalette='gray.200' onClick={(e) => setShowDone(!showDone)}>
                         {(showDone ? <FaChevronUp/> : <FaChevronDown />)}
                         {(showDone ? 'Скрыть' : 'Показать') +' выполненные задачи'}
                     </Button>
                     {showDone &&
                         doneTasks.map((task) => (
-                            <div className="task doneTask my-4">
-                                <div className="taskBlock1 backdrop-blur-xs">
+                            <div className="task doneTask my-4 rounded-2xl pb-[1px] bg-[rgba(22,22,22,0.33)] grayscale">
+                                <div className="taskBlock1 bg-[rgba(22,22,22,0.5)] flex items-center">
                                     <div className="taskCheckerBlock ml-4 mr-2">
                                         <Checkbox.Root
                                             w={6} h={6} variant='outline' colorPalette='green'
@@ -213,7 +202,7 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
                                             <h3 className="text-2xl ml-3">{task.title}</h3>
                                         </div>
                                         <div className="taskSubBlock" id="subBlock2">
-                                            <div className="text-lg">
+                                            <div className="text-md">
                                                 {formatDateDisplay(task.dateStart ? new Date(task.dateStart) : undefined, new Date(task.dateEnd))}
                                             </div>
                                         </div>
@@ -222,7 +211,7 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
                                 <div className="taskBlock2">
                                     <div className="taskSubTasksBlock">
                                         {task.subTasks.map((subTask) => (
-                                            <div key={subTask._id} className="subTask my-3">
+                                            <div key={subTask._id} className="subTask my-3 ml-14">
                                                 <Checkbox.Root
                                                     w={6} h={6} variant='outline' colorPalette='green'
                                                     defaultChecked={checkingState[0] === subTask._id || subTask.status ? 'checked' : false}
@@ -230,7 +219,7 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
                                                     <Checkbox.HiddenInput />
                                                     <Checkbox.Control w={6} h={6} />
                                                 </Checkbox.Root>
-                                                <p className="text-lg ml-3">{subTask.name}</p>
+                                                <p className="text-md ml-3">{subTask.name}</p>
                                             </div>
                                         ))}
                                     </div>

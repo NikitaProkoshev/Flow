@@ -1,40 +1,29 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useHttp } from '../hooks/http.hook';
-import { useMessage } from '../hooks/message.hook';
 import { AuthContext } from '../context/AuthContext';
 import { dateToString } from '../methods';
 import { epicToIcon, epicToColor, upDownSubTask } from '../methods';
 import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box } from '@chakra-ui/react';
-import { FaChevronUp, FaChevronDown, FaPlus, FaXmark } from 'react-icons/fa6';
+import { FaChevronUp, FaChevronDown, FaPlus, FaXmark, FaRegCalendarXmark, FaRegCalendarCheck } from 'react-icons/fa6';
+import { toaster } from './ui/toaster';
 
 export const CreateTask = ({ state, allTasks, task = {} }) => {
     const auth = useContext(AuthContext);
     const { request } = useHttp();
-    const message = useMessage();
 
     const [epic, setEpic] = useState(task.epic || '');
     const [parentId, setParentId] = useState([task.parentId] || []);
     const [title, setTitle] = useState(task.title || '');
     const [desc, setDesc] = useState(task.description || '');
     const [isEvent, setIsEvent] = useState(task.isEvent || false);
-    const [dateStart, setDateStart] = useState(
-        task.dateStart !== undefined ? dateToString(task.dateStart) : undefined
-    );
-    const [timeStart, setTimeStart] = useState(
-        new Date(task.dateStart).toLocaleTimeString('ru-RU') !== 'Invalid Date'
-            ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5)
-            : undefined
-    );
-    const [dateEnd, setDateEnd] = useState(
-        task.dateEnd !== undefined
-            ? dateToString(task.dateEnd)
-            : dateToString(new Date())
-    );
-    const [timeEnd, setTimeEnd] = useState(
-        new Date(task.dateEnd).toLocaleTimeString('ru-RU') !== 'Invalid Date'
-            ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5)
-            : undefined
-    );
+    const [dateStart, setDateStart] = useState((task.dateStart !== undefined && task.dateStart.slice(0,4) !== '1970') ? dateToString(task.dateStart) : undefined);
+    const [timeStart, setTimeStart] = useState((task.dateStart?.slice(11,16) !== '00:00' && new Date(task.dateStart).toLocaleTimeString('ru-RU') !== 'Invalid Date')
+        ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5)
+        : undefined);
+    const [dateEnd, setDateEnd] = useState(task.dateEnd !== undefined ? dateToString(task.dateEnd) : dateToString(new Date()));
+    const [timeEnd, setTimeEnd] = useState((task.dateEnd?.slice(11,16) !== '00:00' && new Date(task.dateEnd).toLocaleTimeString('ru-RU') !== 'Invalid Date')
+        ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5)
+        : undefined);
     const [eisenhower, setEisenhower] = useState(task.eisenhower || '');
     const [subTasks, setSubTasks] = useState(task.subTasks || []);
     const [editing, setEditing] = useState(true);
@@ -79,10 +68,8 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                         },
                         { Authorization: `Bearer ${auth.token}` }
                     );
-                    if (data) {
-                        message('Задача создана!', 'OK');
-                        state(false);
-                    }
+                    toaster.create({ description: data.error || 'Задача создана!' , type: data.error ? 'error' : 'success' })
+                    if (!data.error) state(false)
                 } else {
                     const data = await request(
                         `/api/task/update/${task._id}`,
@@ -105,23 +92,19 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                         },
                         { Authorization: `Bearer ${auth.token}` }
                     );
-                    if (data) {
-                        message('Задача обновлена!', 'OK');
-                        state('');
-                    }
+                    console.log(data.error);
+                    console.log(!data.error);
+                    console.log(data.error || "Задача создана!");
+                    toaster.create({ description: data.error || "Задача обновлена!" , type: data.error ? "error" : "success" })
+                    if (!data.error) state('')
                 }
-            } else {
-                message('Не все обязательные поля заполнены!', 'Warning');
-            }
+            } else toaster.create({ description: 'Не все обязательные поля заполнены!' , type: 'warning' })
         } catch (e) {}
     };
 
     const epicChanging = async (event) => {
         let target = event.target.closest('.epicOption');
-        document.documentElement.style.setProperty(
-            '--epicColor',
-            epicToColor[target.value] + '1)'
-        );
+        document.documentElement.style.setProperty('--epicColor', epicToColor[target.value] + '1)');
         setEpic(target.value);
     };
 
@@ -145,24 +128,15 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
     return (
         <div className={`createTask grid grid-cols-${Object.keys(epicToIcon).length} gap-4 w-full my-8 px-4 py-4 items-start bg-[#161616] rounded-2xl`}>
             {Object.keys(epicToIcon).map((e) => (
-                <Button
-                    className={`epicOption ${epic !== e ? 'grey-text text-darken-3' : 'epic-text selected'}`} id={'epic' + e}
-                    variant="ghost" colorPalette='gray' size="sm" value={e} onClick={epicChanging}
-                >
-                    {['МегаФон', 'РУДН', 'ФК_Краснодар', 'Flow'].includes(e)
-                        ? <img className="epicIcon size-6" id={`epic${e}Icon`} src={`..\\img\\${epicToIcon[e]}.png`} alt={e}/>
-                        : epicToIcon[e]}
-                </Button>
+                <Button className={`epicOption ${epic !== e ? 'grayscale' : 'epic-text selected'}`} id={'epic' + e} variant="ghost" colorPalette='gray' size="sm" value={e} onClick={epicChanging}>
+                    {['МегаФон', 'РУДН', 'ФК_Краснодар', 'Flow'].includes(e) ? <img className="epicIcon size-6" id={`epic${e}Icon`} src={`..\\img\\${epicToIcon[e]}.png`} alt={e}/> : epicToIcon[e]}</Button>
             ))}
             <div className="col-span-8 grid grid-cols-subgrid gap-4">
                 <div className="input-block1 col-span-6 grid grid-cols-subgrid gap-4">
-                    <Box className="col-span-2 grid grid-cols-4 gap-4">
-                        <Button
-                            className={`col-span-1 ${isEvent ? 'Event' : 'notEvent grey-text text-darken-3'}`} id="isEvent" color='#9e9e9e'
-                            variant="ghost" colorPalette='gray' onClick={() => setIsEvent(!isEvent)}
-                        >Event</Button>
-                        <Combobox.Root
-                            className='col-span-3' variant='flushed' collection={collection} color='#e0e0e0' defaultValue={parentId}
+                    <Box className="col-span-2 flex">
+                        <IconButton className={`col-span-1 mr-4 ${isEvent ? 'Event' : 'notEvent grey-text text-darken-3'}`} id="isEvent" color='#9e9e9e' variant="ghost" colorPalette='gray' onClick={() => setIsEvent(!isEvent)}>
+                            {isEvent ? <FaRegCalendarCheck /> : <FaRegCalendarXmark />}</IconButton>
+                        <Combobox.Root variant='flushed' collection={collection} color='#e0e0e0' defaultValue={parentId}
                             value={parentId} onValueChange={(e) => setParentId(e.value)} onInputValueChange={(e) => filter(e.inputValue)}>
                             <Combobox.Control>
                                 <Combobox.Input placeholder="Родитель" />
@@ -213,7 +187,7 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                             onChange={(e) => setDateEnd(e.target.value)}
                         />
                         <Input
-                            className={`ml-4${isEvent && timeEnd === undefined ? ' required' : ''}`} id="taskTimeEnd"
+                            className={`ml-4${isEvent && timeEnd === undefined ? ' required' : ''}`} id="taskTimeEnd" colorPalette='gray'
                             variant="flushed" type="time" value={timeEnd} width='auto' color='#e0e0e0'
                             min={(dateStart === dateEnd && timeStart) ? timeStart : undefined}
                             onChange={(e) => setTimeEnd(e.target.value)}
@@ -232,30 +206,21 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                 return (
                     <div key={subTask._id} className="subTask col-span-8 pl-6">
                         <Input className={subTask.name.length === 0 ? 'required' : ''}
-                            variant="flushed" colorPalette='gray' value={subTask.name} color='#9e9e9e'
+                            variant="flushed" colorPalette='gray' value={subTask.name} color='#e0e0e0'
                             onChange={(e) => setSubTasks(subTasks.map((t) => t._id === subTask._id ? { ...t, name: e.target.value } : t))}
                         />
                         {subTasks.length !== 0 && (
-                            // <div className="upDownSubTask flex flex-col justify-center ml-4 h-full text-[1.25rem] grey-text text-darken-3">
                             <IconButton className="upDownSubTask" variant="ghost" colorPalette='gray' fontSize='2xl' color='#4e4e4e'
                                 flexDirection='column' gap={0} border={0}>
                                 <div
                                     className='upIcon w-full flex justify-center'
                                     onClick={(e) => upDownSubTask(e.target.closest('.upIcon'), subTasks, subTask, setSubTasks)}
                                 ><FaChevronUp /></div>
-                                {/* <FaChevronUp
-                                    className="upIcon"
-                                    onClick={(e) => upDownSubTask(e, subTasks, subTask, setSubTasks)}
-                                /> */}
                                 {index !== subTasks.length - 1 && (
                                     <div
                                         className='downIcon w-full flex justify-center'
                                         onClick={(e) => upDownSubTask(e.target.closest('.downIcon'), subTasks, subTask, setSubTasks)}
                                     ><FaChevronDown /></div>
-                                    // <FaChevronDown
-                                    //     className="downIcon"
-                                    //     onClick={(e) => upDownSubTask(e, subTasks, subTask, setSubTasks)}
-                                    // />
                                 )}
                             </IconButton>
                         )}
@@ -274,7 +239,7 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                 <div>
                     <IconButton id="createTask" color='#4e4e4e' variant="ghost" colorPalette="gray" size="sm" onClick={cancelChanges}>
                         <FaXmark className="text-[1.5rem]" /></IconButton>
-                    <Button className={required !== 0 && 'someRequired'} id="createTask" color='#4e4e4e'
+                    <Button id="createTask" color='#e0e0e0' disabled={required !== 0}
                         variant="solid" colorPalette="teal" size="sm" onClick={saveChanges}
                     >{task._id === undefined ? 'Создать задачу' : 'Обновить задачу'} </Button>
                 </div>

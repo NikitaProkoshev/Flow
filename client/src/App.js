@@ -10,8 +10,13 @@ import { Loader } from './components/Loader';
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { epicToIcon } from './methods';
 import { system } from './theme';
+import { Toaster, toaster } from './components/ui/toaster';
 
 export const EpicsContext = createContext(null);
+document.documentElement.style.setProperty('--fc-today-bg-color', 'rgba(22,22,22)');
+document.documentElement.style.setProperty('--epicsCount', Object.keys(epicToIcon).length);
+document.documentElement.style.setProperty('--tasksLength', Math.round((Object.keys(epicToIcon).length / 10) * 6));
+document.documentElement.style.setProperty('--otherLength', Math.round(Object.keys(epicToIcon).length - (Object.keys(epicToIcon).length / 10) * 6));
 
 function App() {
     const { token, login, logout, userId, ready } = useAuth();
@@ -23,6 +28,12 @@ function App() {
         return <Loader />;
     }
 
+    function disablecontext(e) {
+        var clickedEl = (e==null) ? e.srcElement.tagName : e.target.tagName;
+        if (clickedEl == "IMG") return false
+    }
+    document.oncontextmenu = disablecontext;
+
     return (
         <AuthContext.Provider value={{ token, login, logout, userId, isAuthenticated }}>
             <ChakraProvider value={system}>
@@ -31,6 +42,7 @@ function App() {
                         <Router>
                             {isAuthenticated && <SideBar />}
                             <MainContent>{routes}</MainContent>
+                            <Toaster />
                         </Router>
                     </EpicsContext.Provider>
                 </SideBarProvider>
