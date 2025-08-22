@@ -163,7 +163,7 @@ div.eventsPage div.eventsButtonsArea {
     border-bottom-color: #ffeb3b !important;
 }
 
-*/ .waves-effect.waves-grey .waves-ripple {
+.waves-effect.waves-grey .waves-ripple {
     background-color: rgb(97, 97, 97);
 }
 
