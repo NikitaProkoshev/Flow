@@ -43,7 +43,7 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
         deletingState[1]('')
     }
 
-    const getEisenhowerColor = {'A': 'red', 'B': 'yellow', 'C': 'teal', 'D': 'gray'}
+    const getEisenhowerColor = {'A': 'red', 'B': 'yellow', 'C': 'green', 'D': 'cyan'}
 
     function formatDateDisplay(dateStart, dateEnd) {
         const isToday = (date) =>  date.toDateString() === today.toDateString();

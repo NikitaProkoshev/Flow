@@ -16,8 +16,10 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
     const [title, setTitle] = useState(task.title || '');
     const [desc, setDesc] = useState(task.description || '');
     const [isEvent, setIsEvent] = useState(task.isEvent || false);
-    const [dateStart, setDateStart] = useState((task.dateStart !== undefined && task.dateStart.slice(0,4) !== '1970') ? dateToString(task.dateStart) : undefined);
-    const [timeStart, setTimeStart] = useState((task.dateStart?.slice(11,16) !== '00:00' && new Date(task.dateStart).toLocaleTimeString('ru-RU') !== 'Invalid Date')
+    console.log(task.dateStart);
+    console.log(new Date(task.dateStart).toLocaleTimeString('ru-RU'));
+    const [dateStart, setDateStart] = useState((![null, undefined].includes(task.dateStart) && task?.dateStart?.slice(0,4) !== '1970') ? dateToString(task.dateStart) : undefined);
+    const [timeStart, setTimeStart] = useState((task.dateStart?.slice(11,16) !== '00:00' && !['03:00:00', 'Invalid Date'].includes(new Date(task.dateStart).toLocaleTimeString('ru-RU')))
         ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5)
         : undefined);
     const [dateEnd, setDateEnd] = useState(task.dateEnd !== undefined ? dateToString(task.dateEnd) : dateToString(new Date()));
