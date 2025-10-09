@@ -114,6 +114,7 @@ div.eventsPage div.eventsButtonsArea {
     --tasksLength: 0;
     --otherLength: 0;
     --chakra-colors-chakra-body-bg: #0d0d0d !important;
+    --chakra-colors-fg: #e0e0e0 !important;
 }
 
 /* Стили для input полей */
@@ -262,7 +263,7 @@ div#root {
 #root {
     min-height: 100vh;
     /* background-image: url('img/bg.jpg'); */
-    background-color: #222222;
+    background-color: #09090B;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

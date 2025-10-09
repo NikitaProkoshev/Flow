@@ -4,12 +4,14 @@ import { TasksPage } from './pages/TasksPage';
 import { MainPage } from './pages/MainPage';
 import { DetailPage } from './pages/DetailPage';
 import { AuthPage } from './pages/AuthPage';
+import { DashboardPage } from './pages/DashboardPage';
 
 export const useRoutes = (isAuthenticated) => {
     if (isAuthenticated) {
         return (
             <Routes>
                 <Route path="/" exact element={<MainPage />} />
+                <Route path="/dashboard" exact element={<DashboardPage />} />
                 <Route path="/today" exact element={<TasksPage period='today'/>} />
                 <Route path="/week" exact element={<TasksPage period='week'/>} />
                 <Route path="/month" exact element={<TasksPage period='month'/>} />

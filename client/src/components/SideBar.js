@@ -1,28 +1,21 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { useSideBar } from '../context/SideBarContext';
 import { FaHouse, FaRightFromBracket } from 'react-icons/fa6';
 import { BsCalendar3Event, BsCalendar3Week, BsCalendar3 } from 'react-icons/bs';
+import { RiDashboardFill } from "react-icons/ri";
 import { Button } from '@chakra-ui/react';
 import { epicToIcon, epicToColor } from '../methods';
 import { EpicsContext } from '../App';
 
 export const SideBar = () => {
-    const { isCollapsed, setIsCollapsed } = useSideBar();
     const [epics, setEpics] = useContext(EpicsContext);
     const navigate = useNavigate();
-    // const location = useLocation();
     const { logout } = useContext(AuthContext);
     const sidebarRef = useRef(null);
     const isMobile = () => window.innerWidth <= 768;
     let isButtonDown = false;
     var holdTimer;
-
-    // Автоматически сворачивать на мобильных
-    useEffect(() => {
-        if (isMobile()) setIsCollapsed(true);
-    }, [setIsCollapsed]);
 
     const handleLogout = () => {
         logout();
@@ -32,7 +25,10 @@ export const SideBar = () => {
     const epicsChanging = async (event, only) => {
         let target = event.target.closest('.epicOptionFilter');
         let epicsCopy = epics.slice(0);
-        if (only) return setEpics([target.value])
+        console.log(only)
+        console.log(typeof only);
+        console.log(target.value)
+        if (only) return typeof only === "object" ? setEpics(only) : setEpics([target.value])
         if (target.classList.contains('selected')) epicsCopy.splice(epicsCopy.indexOf(target.value), 1);
         else epicsCopy.push(target.value)
         setEpics(epicsCopy);
@@ -41,50 +37,47 @@ export const SideBar = () => {
     return (
         <div
             ref={sidebarRef}
-            className={`fixed m-4 rounded-2xl bg-[#161616] h-[calc(100%-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 ${isCollapsed ? 'w-12' : 'w-44'}`}
+            className={`fixed m-4 h-[calc(100%-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 w-12`}
             id="sideBar"
         >
-            <div className="flex items-center p-2" onClick={() => (!isMobile()) && setIsCollapsed(!isCollapsed)}>
+            <div className="flex items-center px-2 py-1">
                 <img className='size-8' id='Logo' src={`..\\img\\logo.png`} alt='Logo' />
-                {!isCollapsed && <i className="val-font gradient-font">
-                    <span className="text-2xl not-italic font-normal ml-2">FLOW</span>
-                </i>}
             </div>
 
-            <nav className="border-t border-gray-700">
+            <nav className="rounded-2xl bg-[#121213] my-4">
                 <Button
                     id="homeButton"
-                    w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0'
+                    w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl"
                     variant="ghost" colorPalette="gray"
                     onClick={() => navigate('/tasks')}
                 >
                     <FaHouse className="text-white min-w-6 min-h-6" />
-                    <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>Главная</span>
+                    <span className={`font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden`}>Главная</span>
                 </Button>
-                { [{ i: BsCalendar3Event, t: 'Сегодня', n: '/today'}, { i: BsCalendar3Week, t: 'Неделя', n: '/week'}, { i: BsCalendar3, t: 'Месяц', n: '/month'}].map(btn => (
+                { [{i: RiDashboardFill, t: 'Дашборд', n: '/dashboard'}, { i: BsCalendar3Event, t: 'Сегодня', n: '/today'}, { i: BsCalendar3Week, t: 'Неделя', n: '/week'}, { i: BsCalendar3, t: 'Месяц', n: '/month'}].map(btn => (
                     <Button
-                        w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0'
-                        variant="ghost" colorPalette="gray" onClick={() => navigate(btn.n)}
+                        w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl"
+                        variant="ghost" colorPalette="gray" title={btn.t} onClick={() => navigate(btn.n)}
                     >
                         <btn.i className="text-white min-w-6 min-h-6" />
-                        <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>{btn.t}</span>
+                        {/* <span className={`font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden`}>{btn.t}</span> */}
                     </Button>
                 ))}
             </nav>
-            <nav className="border-t border-gray-700 flex flex-col items-start">
+            <nav className=" flex flex-col items-start rounded-2xl bg-[#121213] my-4">
                 {Object.keys(epicToIcon).map((epic) => (
                     <Button
                         className={`epicOptionFilter ${(epics.includes(epic) ? 'selected' : '')}`} id={'epic' + epic}
-                        w={isCollapsed ? 12 : '100%'} h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' color={`${epicToColor[epic]}1)`}
+                        w={12} h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' color={`${epicToColor[epic]}1)`} rounded="2xl"
                         filter={epics.includes(epic) ? 'grayscale(0%)' : 'grayscale(100%)'} borderWidth={0}
                         variant="ghost" colorPalette="gray" value={epic}
                         onMouseDown={(e) => {
                             isButtonDown = true;
-                            holdTimer = setTimeout(() => {if (isButtonDown) epicsChanging(e, true) }, 500);
+                            holdTimer = setTimeout(() => {if (isButtonDown) epicsChanging(e, epics.length == 1 && epics[0] == epic ? Object.keys(epicToIcon) : true) }, 500);
                         }}
                         onTouchStart={(e) => {
                             isButtonDown = true;
-                            holdTimer = setTimeout(() => {if (isButtonDown) epicsChanging(e, true) }, 500);
+                            holdTimer = setTimeout(() => {if (isButtonDown) epicsChanging(e, epics.length == 1 && epics[0] == epic ? Object.keys(epicToIcon) : true) }, 500);
                         }}
                         onMouseUp={(e) => {
                             isButtonDown = false;
@@ -95,19 +88,19 @@ export const SideBar = () => {
                             ? <img className="epicIcon size-6" id={`epic${epic}Icon`} src={`..\\img\\${epicToIcon[epic]}.png`} alt={epic} />
                             : epicToIcon[epic]
                         }
-                        <span className={`hidden sm:inline transition-all duration-300 ${isCollapsed ? 'overflow-hidden opacity-0 w-0' : 'opacity-100'}`}>{epic.replace('_', ' ')}</span>
+                        <span className={`hidden sm:inline transition-all duration-300 overflow-hidden opacity-0 w-0`}>{epic.replace('_', ' ')}</span>
                     </Button>
                 ))}
             </nav>
-            <nav className="absolute bottom-0 w-full border-t border-gray-700">
+            <nav className="absolute bottom-0 w-full rounded-2xl bg-[#121213] my-4">
                 <Button
                     id="logOutButton"
-                    w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0'
+                    w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl"
                     variant="ghost" colorPalette="gray"
                     onClick={handleLogout}
                 >
                     <FaRightFromBracket className="text-white min-w-6 min-h-6" />
-                    <span className={`font-medium transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>
+                    <span className={`font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden`}>
                         Выйти</span>
                 </Button>
             </nav>

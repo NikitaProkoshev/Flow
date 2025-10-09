@@ -3,7 +3,7 @@ import { useHttp } from '../hooks/http.hook';
 import { AuthContext } from '../context/AuthContext';
 import { dateToString } from '../methods';
 import { epicToIcon, epicToColor, upDownSubTask } from '../methods';
-import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box } from '@chakra-ui/react';
+import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box, Select, createListCollection } from '@chakra-ui/react';
 import { FaChevronUp, FaChevronDown, FaPlus, FaXmark, FaRegCalendarXmark, FaRegCalendarCheck } from 'react-icons/fa6';
 import { toaster } from './ui/toaster';
 
@@ -19,11 +19,11 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
     console.log(task.dateStart);
     console.log(new Date(task.dateStart).toLocaleTimeString('ru-RU'));
     const [dateStart, setDateStart] = useState((![null, undefined].includes(task.dateStart) && task?.dateStart?.slice(0,4) !== '1970') ? dateToString(task.dateStart) : undefined);
-    const [timeStart, setTimeStart] = useState((task.dateStart?.slice(11,16) !== '00:00' && !['03:00:00', 'Invalid Date'].includes(new Date(task.dateStart).toLocaleTimeString('ru-RU')))
+    const [timeStart, setTimeStart] = useState((typeof task.dateStart === 'string' && !task.dateStart.endsWith('T00:00:00.000Z'))
         ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5)
         : undefined);
     const [dateEnd, setDateEnd] = useState(task.dateEnd !== undefined ? dateToString(task.dateEnd) : dateToString(new Date()));
-    const [timeEnd, setTimeEnd] = useState((task.dateEnd?.slice(11,16) !== '00:00' && new Date(task.dateEnd).toLocaleTimeString('ru-RU') !== 'Invalid Date')
+    const [timeEnd, setTimeEnd] = useState((typeof task.dateEnd === 'string' && !task.dateEnd.endsWith('T00:00:00.000Z'))
         ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5)
         : undefined);
     const [eisenhower, setEisenhower] = useState(task.eisenhower || '');
@@ -127,82 +127,111 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
         filter: contains,
     })
 
+    const eisenhowerCollection = createListCollection({
+        items: [
+          { label: "A", value: "A" },
+          { label: "B", value: "B" },
+          { label: "C", value: "C" },
+          { label: "D", value: "D" },
+        ],
+      })
+
     return (
-        <div className={`createTask grid grid-cols-${Object.keys(epicToIcon).length} gap-4 w-full my-8 px-4 py-4 items-start bg-[#161616] rounded-2xl`}>
+        <div className={`createTask grid grid-cols-${Object.keys(epicToIcon).length} gap-4 w-full my-8 px-4 py-4 items-start bg-[#121213] rounded-2xl`}>
             {Object.keys(epicToIcon).map((e) => (
                 <Button className={`epicOption ${epic !== e ? 'grayscale' : 'epic-text selected'}`} id={'epic' + e} variant="ghost" colorPalette='gray' size="sm" value={e} onClick={epicChanging}>
                     {['МегаФон', 'РУДН', 'ФК_Краснодар', 'Flow'].includes(e) ? <img className="epicIcon size-6" id={`epic${e}Icon`} src={`..\\img\\${epicToIcon[e]}.png`} alt={e}/> : epicToIcon[e]}</Button>
             ))}
+
             <div className="col-span-8 grid grid-cols-subgrid gap-4">
-                <div className="input-block1 col-span-6 grid grid-cols-subgrid gap-4">
-                    <Box className="col-span-2 flex">
-                        <IconButton className={`col-span-1 mr-4 ${isEvent ? 'Event' : 'notEvent grey-text text-darken-3'}`} id="isEvent" color='#9e9e9e' variant="ghost" colorPalette='gray' onClick={() => setIsEvent(!isEvent)}>
-                            {isEvent ? <FaRegCalendarCheck /> : <FaRegCalendarXmark />}</IconButton>
-                        <Combobox.Root variant='flushed' collection={collection} color='#e0e0e0' defaultValue={parentId}
-                            value={parentId} onValueChange={(e) => setParentId(e.value)} onInputValueChange={(e) => filter(e.inputValue)}>
-                            <Combobox.Control>
-                                <Combobox.Input placeholder="Родитель" />
-                                <Combobox.IndicatorGroup>
-                                    <Combobox.ClearTrigger />
-                                    <Combobox.Trigger color='#e0e0e0' />
-                                </Combobox.IndicatorGroup>
-                            </Combobox.Control>
-                            <Portal>
-                                <Combobox.Positioner>
-                                <Combobox.Content backgroundColor='#161616' color='#e0e0e0' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616'>
-                                    <Combobox.Empty>No items found</Combobox.Empty>
-                                    {collection.items.map((item) => (
-                                    <Combobox.Item item={item} key={item.value}>
-                                        {item.label}
-                                        <Combobox.ItemIndicator />
-                                    </Combobox.Item>
-                                    ))}
-                                </Combobox.Content>
-                                </Combobox.Positioner>
-                            </Portal>
-                        </Combobox.Root>
-                    </Box>
-                    <Input
-                        className={'col-span-4 border-b' +(title.length === 0 ? ' required' : '')} id="taskTitle" variant="flushed" color='#e0e0e0'
-                        value={title} placeholder={'Название ' + (isEvent ? 'мероприятия' : 'задачи')} onChange={(e) => setTitle(e.target.value)}
+                <Box className="col-span-2 flex">
+                    <Combobox.Root variant='subtle' collection={collection} color='#e0e0e0' defaultValue={parentId}
+                        value={parentId} onValueChange={(e) => setParentId(e.value)} onInputValueChange={(e) => filter(e.inputValue)}>
+                        <Combobox.Control>
+                            <Combobox.Input placeholder="Родитель" backgroundColor='#161616' />
+                            <Combobox.IndicatorGroup>
+                                <Combobox.ClearTrigger />
+                                <Combobox.Trigger color='#e0e0e0' />
+                            </Combobox.IndicatorGroup>
+                        </Combobox.Control>
+                        <Portal>
+                            <Combobox.Positioner>
+                            <Combobox.Content backgroundColor='#161616' color='#e0e0e0' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616'>
+                                <Combobox.Empty>No items found</Combobox.Empty>
+                                {collection.items.map((item) => (
+                                <Combobox.Item item={item} key={item.value}>
+                                    {item.label}
+                                    <Combobox.ItemIndicator />
+                                </Combobox.Item>
+                                ))}
+                            </Combobox.Content>
+                            </Combobox.Positioner>
+                        </Portal>
+                    </Combobox.Root>
+                </Box>
+                <Input
+                    className={'col-span-6 border-b' +(title.length === 0 ? ' required' : '')} id="taskTitle" variant="flushed" color='#e0e0e0'
+                    value={title} placeholder={'Название ' + (isEvent ? 'мероприятия' : 'задачи')} onChange={(e) => setTitle(e.target.value)}
+                />
+                <Box className="col-span-1 flex">
+                    <Select.Root variant='subtle' collection={eisenhowerCollection} color='#e0e0e0'>
+                        <Select.Trigger color='#e0e0e0' backgroundColor='#161616'>
+                            <Select.ValueText placeholder="--" />
+                        </Select.Trigger>
+                        <Portal>
+                            <Select.Positioner>
+                                <Select.Content backgroundColor='#161616' color='#e0e0e0' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616'>
+                                {eisenhowerCollection.items.map((e) => (
+                                    <Select.Item item={e} key={e.value}>
+                                        {e.label}
+                                    <Select.ItemIndicator />
+                                    </Select.Item>
+                                ))}
+                                </Select.Content>
+                            </Select.Positioner>
+                        </Portal>
+                    </Select.Root>
+                    
+                            {/* {['A', 'B', 'C', 'D'].map((e) => (
+                                <option value={e}>{e}</option>
+                            ))} */}
+                </Box>
+                <Input
+                    className="col-span-7" id="taskDescription" variant="flushed" color='#e0e0e0'
+                    value={desc} placeholder={`Описание ${isEvent ? 'мероприятия' : 'задачи'}`} onChange={(e) => setDesc(e.target.value)}
+                />
+                <div className="input-fields3 col-span-8 flex items-center">
+                    <IconButton className={`col-span-1 mr-4 ${isEvent ? 'Event' : 'notEvent grey-text text-darken-3'}`} id="isEvent" color='#9e9e9e' variant="ghost" colorPalette='gray' onClick={() => setIsEvent(!isEvent)}>
+                        {isEvent ? <FaRegCalendarCheck /> : <FaRegCalendarXmark />}</IconButton>
+                    <Input 
+                        className={`col-span-2(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined) ? ' required' : ''`}
+                        id="taskDateStart" variant="flushed" type="date" value={dateStart} min="2002-11-22" max={dateEnd} width='auto' color='#e0e0e0'
+                        onChange={(e) => setDateStart(e.target.value)}
                     />
                     <Input
-                        className="col-span-6" id="taskDescription" variant="flushed" color='#e0e0e0'
-                        value={desc} placeholder={`Описание ${isEvent ? 'мероприятия' : 'задачи'}`} onChange={(e) => setDesc(e.target.value)}
+                        className={`col-span-1 ml-4${isEvent && timeStart === undefined ? ' required' : ''}`} id="taskTimeStart" color='#e0e0e0'
+                        variant="flushed" type="time" value={timeStart} max={(dateStart === dateEnd && timeEnd) ? timeEnd : undefined} width='auto'
+                        onChange={(e) => setTimeStart(e.target.value)}
                     />
-                    <div className="input-fields3 col-span-6">
-                        <Input 
-                            className={(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined) ? 'required' : ''}
-                            id="taskDateStart" variant="flushed" type="date" value={dateStart} min="2002-11-22" max={dateEnd} width='auto' color='#e0e0e0'
-                            onChange={(e) => setDateStart(e.target.value)}
-                        />
-                        <Input
-                            className={`ml-4${isEvent && timeStart === undefined ? ' required' : ''}`} id="taskTimeStart" color='#e0e0e0'
-                            variant="flushed" type="time" value={timeStart} max={(dateStart === dateEnd && timeEnd) ? timeEnd : undefined} width='auto'
-                            onChange={(e) => setTimeStart(e.target.value)}
-                        />
-                        <p className="ml-4">➜</p>
-                        <Input
-                            className={`ml-4${dateEnd === 'Invalid Date' ? ' required' : ''}`} id="taskDateEnd" color='#e0e0e0'
-                            variant="flushed" type="date" value={dateEnd}
-                            min={dateStart === undefined ? '2002-11-22' : dateStart} max="2099-12-31" width='auto'
-                            onChange={(e) => setDateEnd(e.target.value)}
-                        />
-                        <Input
-                            className={`ml-4${isEvent && timeEnd === undefined ? ' required' : ''}`} id="taskTimeEnd" colorPalette='gray'
-                            variant="flushed" type="time" value={timeEnd} width='auto' color='#e0e0e0'
-                            min={(dateStart === dateEnd && timeStart) ? timeStart : undefined}
-                            onChange={(e) => setTimeEnd(e.target.value)}
-                        />
-                    </div>
+                    <p className="col-span-1 ml-4">➜</p>
+                    <Input
+                        className={`col-span-2 ml-4${dateEnd === 'Invalid Date' ? ' required' : ''}`} id="taskDateEnd" color='#e0e0e0'
+                        variant="flushed" type="date" value={dateEnd}
+                        min={dateStart === undefined ? '2002-11-22' : dateStart} max="2099-12-31" width='auto'
+                        onChange={(e) => setDateEnd(e.target.value)}
+                    />
+                    <Input
+                        className={`col-span-1 ml-4${isEvent && timeEnd === undefined ? ' required' : ''}`} id="taskTimeEnd" colorPalette='gray'
+                        variant="flushed" type="time" value={timeEnd} width='auto' color='#e0e0e0'
+                        min={(dateStart === dateEnd && timeStart) ? timeStart : undefined}
+                        onChange={(e) => setTimeEnd(e.target.value)}
+                    />
                 </div>
-                <div className="input-block2 col-span-2 h-full grid grid-cols-subgrid grid-rows-2 gap-0">
-                    {['A', 'B', 'C', 'D'].map((val) => (
+                    {/* {['A', 'B', 'C', 'D'].map((val) => (
                         <div className={`eisenhowerOption flex justify-center items-center${eisenhower === val ? ' epic-background selected' : ''}`}
                             id={'eisenhower' + val} onClick={eisenhowerSelecting}
                         >{val}</div>
-                    ))}
-                </div>
+                    ))} */}
             </div>
             {subTasks.map((subTask, index) => {
                 return (

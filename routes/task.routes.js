@@ -98,7 +98,7 @@ router.get('/', auth, async (req, res) => {
         const yesterdayHabits = await Task.find({ owner: req.user.userId, epic: 'Привычки', title: "Привычки_"+yesterdayStr });
         if (yesterdayHabits.length === 0) {
             const habits_temp = await Task.find({ owner: req.user.userId, epic: 'Привычки', title: "Привычки_шаблон" });
-            const [day, month, year] = todayStr.split('.');
+            const [day, month, year] = yesterdayStr.split('.');
             const date = new Date(`${year}-${month}-${day}`);
             const task = new Task({ code: shortid.generate(), epic: 'Привычки', status: false, title: 'Привычки_'+yesterdayStr, description: 'Привычки', isEvent: false,
                 dateStart: date, dateEnd: date, eisenhower: 'A', subTasks: habits_temp[0].subTasks, owner: req.user.userId });

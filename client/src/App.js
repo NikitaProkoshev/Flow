@@ -7,7 +7,7 @@ import { SideBar } from './components/SideBar';
 import { MainContent } from './components/MainContent';
 import { SideBarProvider } from './context/SideBarContext';
 import { Loader } from './components/Loader';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider, defaultSystem, Theme } from '@chakra-ui/react';
 import { epicToIcon } from './methods';
 import { system } from './theme';
 import { Toaster, toaster } from './components/ui/toaster';
@@ -40,9 +40,11 @@ function App() {
                 <SideBarProvider>
                     <EpicsContext.Provider value={[epics, setEpics]}>
                         <Router>
-                            {isAuthenticated && <SideBar />}
-                            <MainContent>{routes}</MainContent>
-                            <Toaster />
+                            <Theme appearance="dark" colorPalette="gray">
+                                {isAuthenticated && <SideBar />}
+                                <MainContent>{routes}</MainContent>
+                                <Toaster />
+                            </Theme>
                         </Router>
                     </EpicsContext.Provider>
                 </SideBarProvider>
