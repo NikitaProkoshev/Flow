@@ -97,6 +97,7 @@ export const TasksList = ({ editState, checkingState, deletingState, allTasks, t
             {![0, undefined].includes(tasks?.length)
             ? tasks.map((task) => {
                 if (editState[0] !== task._id) { 
+                    console.log(task);
                     return <div key={task._id} className="task my-4 rounded-2xl pb-[1px] bg-[#0f0f10]">
                         <div className="taskBlock1 bg-[#121213] rounded-2xl flex items-center">
                             <div className="taskCheckerBlock ml-4 mr-2">

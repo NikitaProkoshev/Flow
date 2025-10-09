@@ -3,7 +3,7 @@ import { useHttp } from '../hooks/http.hook';
 import { AuthContext } from '../context/AuthContext';
 import { dateToString } from '../methods';
 import { epicToIcon, epicToColor, upDownSubTask } from '../methods';
-import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box, Select, createListCollection } from '@chakra-ui/react';
+import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box, Select, createListCollection, RadioGroup, Checkbox } from '@chakra-ui/react';
 import { FaChevronUp, FaChevronDown, FaPlus, FaXmark, FaRegCalendarXmark, FaRegCalendarCheck } from 'react-icons/fa6';
 import { toaster } from './ui/toaster';
 
@@ -31,6 +31,16 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
     const [editing, setEditing] = useState(true);
     const [required, setRequired] = useState(2);
 
+    // Повторение
+    const [isTemplate, setIsTemplate] = useState(task.isTemplate || false);
+    const [editScope, setEditScope] = useState('this'); // 'this' | 'series'
+    const [frequency, setFrequency] = useState(task.recurrence?.frequency || '');
+    const [interval, setInterval] = useState(task.recurrence?.interval || 1);
+    const [byWeekDays, setByWeekDays] = useState(task.recurrence?.byWeekDays || []);
+    const [byMonthDays, setByMonthDays] = useState(task.recurrence?.byMonthDays || []);
+    const [recStartDate, setRecStartDate] = useState(task.recurrence?.startDate ? dateToString(task.recurrence.startDate) : undefined);
+    const [recEndDate, setRecEndDate] = useState(task.recurrence?.endDate ? dateToString(task.recurrence.endDate) : undefined);
+
     useEffect(() => {
         setRequired(document.getElementsByClassName('required').length + (epic === '' ? 1 : 0) + (eisenhower === '' ? 1 : 0));
         document.documentElement.style.setProperty('--epicColor', epicToColor[epic] + '1)');
@@ -46,8 +56,11 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
     };
 
     const saveChanges = async (event) => {
+        console.log("AAAAAAA");
         try {
+            console.log("BBBBBBBBB")
             if (required === 0) {
+                console.log("CCCCCCCC")
                 const parentTask = (parentId.length !== 0) ? allTasks.filter(task => task._id == parentId[0])[0] : undefined;
                 if (task._id === undefined) {
                     const data = await request(
@@ -67,6 +80,13 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                             dateEnd: dateEnd.slice(0, 11) + ([undefined, ''].includes(timeEnd) ? '' : 'T' + timeEnd),
                             eisenhower: eisenhower,
                             subTasks: subTasks,
+                            isTemplate: isTemplate || !!frequency,
+                            recurrence: frequency ? {
+                                frequency, interval,
+                                byWeekDays, byMonthDays,
+                                startDate: recStartDate,
+                                endDate: recEndDate,
+                            } : undefined,
                         },
                         { Authorization: `Bearer ${auth.token}` }
                     );
@@ -91,6 +111,13 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                             dateEnd: dateEnd.slice(0, 11) + ([undefined, ''].includes(timeEnd) ? '' : 'T' + timeEnd),
                             eisenhower: eisenhower,
                             subTasks: subTasks,
+                            editScope: editScope,
+                            recurrence: frequency ? {
+                                frequency, interval,
+                                byWeekDays, byMonthDays,
+                                startDate: recStartDate,
+                                endDate: recEndDate,
+                            } : undefined,
                         },
                         { Authorization: `Bearer ${auth.token}` }
                     );
@@ -133,8 +160,18 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
           { label: "B", value: "B" },
           { label: "C", value: "C" },
           { label: "D", value: "D" },
-        ],
-      })
+        ]
+    })
+
+    const frequencyCollection = createListCollection({
+        items: [
+            {label: 'Ежеденевно', value: 'daily'},
+            {label: 'Еженедельно', value: 'weekly'},
+            {label: 'Ежемесячно', value: 'monthly'},
+            {label: 'Ежегодно', value: 'yearly'},
+            {label: 'Кастомное', value: 'custom'}
+        ]
+    })
 
     return (
         <div className={`createTask grid grid-cols-${Object.keys(epicToIcon).length} gap-4 w-full my-8 px-4 py-4 items-start bg-[#121213] rounded-2xl`}>
@@ -174,7 +211,7 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                     value={title} placeholder={'Название ' + (isEvent ? 'мероприятия' : 'задачи')} onChange={(e) => setTitle(e.target.value)}
                 />
                 <Box className="col-span-1 flex">
-                    <Select.Root variant='subtle' collection={eisenhowerCollection} color='#e0e0e0'>
+                    <Select.Root variant='subtle' collection={eisenhowerCollection} color='#e0e0e0' onValueChange={(e) => setEisenhower(e.value[0])}>
                         <Select.Trigger color='#e0e0e0' backgroundColor='#161616'>
                             <Select.ValueText placeholder="--" />
                         </Select.Trigger>
@@ -182,7 +219,7 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                             <Select.Positioner>
                                 <Select.Content backgroundColor='#161616' color='#e0e0e0' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616'>
                                 {eisenhowerCollection.items.map((e) => (
-                                    <Select.Item item={e} key={e.value}>
+                                    <Select.Item item={e} key={e.value} id={'eisenhower'+e.value}>
                                         {e.label}
                                     <Select.ItemIndicator />
                                     </Select.Item>
@@ -191,10 +228,6 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                             </Select.Positioner>
                         </Portal>
                     </Select.Root>
-                    
-                            {/* {['A', 'B', 'C', 'D'].map((e) => (
-                                <option value={e}>{e}</option>
-                            ))} */}
                 </Box>
                 <Input
                     className="col-span-7" id="taskDescription" variant="flushed" color='#e0e0e0'
@@ -204,7 +237,7 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                     <IconButton className={`col-span-1 mr-4 ${isEvent ? 'Event' : 'notEvent grey-text text-darken-3'}`} id="isEvent" color='#9e9e9e' variant="ghost" colorPalette='gray' onClick={() => setIsEvent(!isEvent)}>
                         {isEvent ? <FaRegCalendarCheck /> : <FaRegCalendarXmark />}</IconButton>
                     <Input 
-                        className={`col-span-2(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined) ? ' required' : ''`}
+                        className={`col-span-2${(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined) ? ' required' : ''}`}
                         id="taskDateStart" variant="flushed" type="date" value={dateStart} min="2002-11-22" max={dateEnd} width='auto' color='#e0e0e0'
                         onChange={(e) => setDateStart(e.target.value)}
                     />
@@ -227,12 +260,83 @@ export const CreateTask = ({ state, allTasks, task = {} }) => {
                         onChange={(e) => setTimeEnd(e.target.value)}
                     />
                 </div>
-                    {/* {['A', 'B', 'C', 'D'].map((val) => (
-                        <div className={`eisenhowerOption flex justify-center items-center${eisenhower === val ? ' epic-background selected' : ''}`}
-                            id={'eisenhower' + val} onClick={eisenhowerSelecting}
-                        >{val}</div>
-                    ))} */}
             </div>
+            {/* Блок повторения */}
+            <div className="col-span-8 grid grid-cols-subgrid gap-4">
+                <div className="col-span-8 flex items-center gap-4">
+                    <Checkbox.Root
+                        w={5} h={5} variant='outline' colorPalette='teal'
+                        onCheckedChange={(e) => setIsTemplate(e.checked)} defaultChecked={isTemplate}
+                    >
+                        <Checkbox.HiddenInput />
+                        <Checkbox.Control w={5} h={5} />
+                    </Checkbox.Root>
+                    <p className="text-md">Сделать повторяющейся</p>
+                </div>
+                { (isTemplate || frequency) && (
+                    <>
+                        <Box className="col-span-2">
+                            <Select.Root variant='subtle' collection={frequencyCollection} color='#e0e0e0' onValueChange={(e) => setFrequency(e.value)}>
+                                <Select.Trigger color='#e0e0e0' backgroundColor='#161616'>
+                                    <Select.ValueText placeholder="Периодичность" />
+                                </Select.Trigger>
+                                <Portal>
+                                    <Select.Positioner>
+                                        <Select.Content backgroundColor='#161616' color='#e0e0e0' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616'>
+                                        {frequencyCollection.items.map((e) => (
+                                            <Select.Item item={e} key={e.value}>
+                                                {e.label}
+                                            <Select.ItemIndicator />
+                                            </Select.Item>
+                                        ))}
+                                        </Select.Content>
+                                    </Select.Positioner>
+                                </Portal>
+                            </Select.Root>
+                        </Box>
+                        <Input className="col-span-1" type="number" min={1} value={interval}
+                            onChange={(e)=> setInterval(parseInt(e.target.value||'1'))}
+                            variant="flushed" color="#e0e0e0" placeholder="Интервал" />
+                        <Input className="col-span-2" type="date" value={recStartDate}
+                            onChange={(e)=> setRecStartDate(e.target.value)}
+                            variant="flushed" color="#e0e0e0" placeholder="Старт серии" />
+                        <Input className="col-span-2" type="date" value={recEndDate}
+                            onChange={(e)=> setRecEndDate(e.target.value)}
+                            variant="flushed" color="#e0e0e0" placeholder="Конец серии" />
+
+                        {frequency === 'weekly' && (
+                            <Box className="col-span-8">
+                                <div className="flex gap-2 flex-wrap">
+                                    {[0,1,2,3,4,5,6].map(d => (
+                                        <Button key={d} size='xs' variant={byWeekDays.includes(d)?'solid':'outline'} colorPalette='gray'
+                                            onClick={()=> setByWeekDays(prev => prev.includes(d) ? prev.filter(x=>x!==d) : [...prev, d])}
+                                        >{['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d]}</Button>
+                                    ))}
+                                </div>
+                            </Box>
+                        )}
+                        {frequency === 'monthly' && (
+                            <Input className="col-span-8" placeholder="Дни месяца, через запятую (напр. 1,15,30)" variant="flushed" color="#e0e0e0"
+                                onChange={(e)=> setByMonthDays(e.target.value.split(',').map(v=>parseInt(v.trim())).filter(Boolean))} />
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* Область редактирования для экземпляров */}
+            {task.templateId && (
+                <div className="col-span-8">
+                    <RadioGroup.Root value={editScope} onValueChange={(e)=> setEditScope(e.value)}>
+                        <RadioGroup.Item key='this' value='this'>
+                            <RadioGroup.ItemIndicator />
+                            <RadioGroup.ItemText>Только этот экземпляр</RadioGroup.ItemText>
+                        </RadioGroup.Item>
+                        <RadioGroup.Item key='series' value='series'>
+                            <RadioGroup.ItemText>Шаблон серии</RadioGroup.ItemText>
+                        </RadioGroup.Item>
+                    </RadioGroup.Root>
+                </div>
+            )}
             {subTasks.map((subTask, index) => {
                 return (
                     <div key={subTask._id} className="subTask col-span-8 pl-6">

@@ -21,7 +21,20 @@ const schema = new Schema({
         status: {
             type: Boolean,
         }
-    }, { _id: true })]
+    }, { _id: true })],
+
+    // Поля для повторяющихся задач
+    isTemplate: { type: Boolean, default: false }, // true для шаблонной задачи (серии)
+    templateId: { type: Types.ObjectId, ref: 'task' }, // ссылка на шаблон (для экземпляров)
+    instanceDate: { type: Date }, // дата экземпляра (нормализованная на начало дня)
+    recurrence: { // расписание повторения (только для шаблонов)
+        frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly', 'custom'] },
+        interval: { type: Number, default: 1 }, // каждые N единиц
+        byWeekDays: [{ type: Number }], // 0-6 (вс-пн)
+        byMonthDays: [{ type: Number }], // 1-31
+        startDate: { type: Date }, // старт повторения (обычно = dateEnd или dateStart)
+        endDate: { type: Date }, // дата окончания серии (опционально)
+    },
 })
 
 module.exports = model('task', schema)
