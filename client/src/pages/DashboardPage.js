@@ -7,7 +7,7 @@ import { Dashboard } from '../components/Dashboard'
 
 export const DashboardPage = ({}) => {
     const [tasks, setTasks] = useState([]);
-    const [tab, setTab] = useState("today")
+    const [tab, setTab] = useState("today");
     var habits, events, todayTasks, weekTasks, monthTasks;
     const { request } = useHttp();
     const { token } = useContext(AuthContext);

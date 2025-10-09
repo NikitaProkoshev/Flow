@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { FaHouse, FaRightFromBracket } from 'react-icons/fa6';
 import { BsCalendar3Event, BsCalendar3Week, BsCalendar3 } from 'react-icons/bs';
 import { RiDashboardFill } from "react-icons/ri";
+import { TbTemplate } from "react-icons/tb";
 import { Button } from '@chakra-ui/react';
 import { epicToIcon, epicToColor } from '../methods';
 import { EpicsContext } from '../App';
@@ -54,7 +55,7 @@ export const SideBar = () => {
                     <FaHouse className="text-white min-w-6 min-h-6" />
                     <span className={`font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden`}>Главная</span>
                 </Button>
-                { [{i: RiDashboardFill, t: 'Дашборд', n: '/dashboard'}, { i: BsCalendar3Event, t: 'Сегодня', n: '/today'}, { i: BsCalendar3Week, t: 'Неделя', n: '/week'}, { i: BsCalendar3, t: 'Месяц', n: '/month'}].map(btn => (
+                { [{i: RiDashboardFill, t: 'Дашборд', n: '/dashboard'}, {i: TbTemplate, t: 'Шаблоны', n: '/templates'}, { i: BsCalendar3Event, t: 'Сегодня', n: '/today'}, { i: BsCalendar3Week, t: 'Неделя', n: '/week'}, { i: BsCalendar3, t: 'Месяц', n: '/month'}].map(btn => (
                     <Button
                         w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl"
                         variant="ghost" colorPalette="gray" title={btn.t} onClick={() => navigate(btn.n)}
