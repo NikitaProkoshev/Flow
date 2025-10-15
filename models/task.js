@@ -14,13 +14,8 @@ const schema = new Schema({
     createDate: {type: Date, default: Date.now}, // Время и дата, когда создана задача
     eisenhower: {type: String}, // Разделение задач по важности (A/B/C/D)
     subTasks: [new Schema({
-        name: {
-            type: String,
-            required: true
-        },
-        status: {
-            type: Boolean,
-        }
+        name: { type: String, required: true },
+        status: { type: Boolean }
     }, { _id: true })],
 
     // Поля для повторяющихся задач
@@ -28,10 +23,8 @@ const schema = new Schema({
     templateId: { type: Types.ObjectId, ref: 'task' }, // ссылка на шаблон (для экземпляров)
     instanceDate: { type: Date }, // дата экземпляра (нормализованная на начало дня)
     recurrence: { // расписание повторения (только для шаблонов)
-        frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly', 'custom'] },
+        frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'] },
         interval: { type: Number, default: 1 }, // каждые N единиц
-        byWeekDays: [{ type: Number }], // 0-6 (вс-пн)
-        byMonthDays: [{ type: Number }], // 1-31
         startDate: { type: Date }, // старт повторения (обычно = dateEnd или dateStart)
         endDate: { type: Date }, // дата окончания серии (опционально)
     },

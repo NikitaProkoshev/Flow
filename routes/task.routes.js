@@ -4,7 +4,6 @@ const Task = require('../models/task');
 const auth = require('../middleware/auth.middleware');
 const router = Router();
 const shortId = require('shortid');
-const shortid = require("shortid");
 
 function normalizeStartOfDay(date) {
     const d = new Date(date);
@@ -26,49 +25,21 @@ function* iterateOccurrences(recurrence, from, to) {
     const windowEnd = new Date(to);
 
     let cursor = new Date(seriesStart);
-    // Fast-forward cursor to not iterate from far past
-    if (recurrence.frequency === 'daily' || recurrence.frequency === 'custom') {
+    if (recurrence.frequency === 'daily') {
         const diffDays = Math.floor((windowStart - cursor) / (24*3600*1000));
         if (diffDays > 0) cursor = addDays(cursor, Math.floor(diffDays / interval) * interval);
     } else if (recurrence.frequency === 'weekly') {
         const diffDays = Math.floor((windowStart - cursor) / (24*3600*1000));
         if (diffDays > 0) cursor = addWeeks(cursor, Math.floor(diffDays / (interval*7)) * interval);
     } else if (recurrence.frequency === 'monthly') {
-        // naive fast-forward by months
         while (cursor < windowStart) cursor = addMonths(cursor, interval);
     } else if (recurrence.frequency === 'yearly') {
         while (cursor < windowStart) cursor = addYears(cursor, interval);
     }
 
     while (cursor <= windowEnd && (!seriesEnd || cursor <= seriesEnd)) {
-        if (recurrence.frequency === 'weekly' && Array.isArray(recurrence.byWeekDays) && recurrence.byWeekDays.length > 0) {
-            // For weekly, emit all specified weekdays within each week bucket
-            const weekStart = new Date(cursor);
-            weekStart.setHours(0,0,0,0);
-            for (const wd of recurrence.byWeekDays) {
-                const occ = new Date(weekStart);
-                const currentWd = occ.getDay();
-                const delta = ((wd - currentWd) + 7) % 7;
-                occ.setDate(occ.getDate() + delta);
-                if (occ >= windowStart && occ <= windowEnd && (!seriesEnd || occ <= seriesEnd)) yield normalizeStartOfDay(occ);
-            }
-            cursor = addWeeks(weekStart, interval);
-            continue;
-        }
-
-        if (recurrence.frequency === 'monthly' && Array.isArray(recurrence.byMonthDays) && recurrence.byMonthDays.length > 0) {
-            const baseMonth = new Date(cursor);
-            for (const md of recurrence.byMonthDays) {
-                const occ = new Date(baseMonth.getFullYear(), baseMonth.getMonth(), md, 0,0,0,0);
-                if (occ >= windowStart && occ <= windowEnd && (!seriesEnd || occ <= seriesEnd)) yield normalizeStartOfDay(occ);
-            }
-            cursor = addMonths(baseMonth, interval);
-            continue;
-        }
-
-        // Default: simple step
         if (cursor >= windowStart && cursor <= windowEnd) yield normalizeStartOfDay(cursor);
-        if (recurrence.frequency === 'daily' || recurrence.frequency === 'custom') cursor = addDays(cursor, interval);
+        if (recurrence.frequency === 'daily') cursor = addDays(cursor, interval);
         else if (recurrence.frequency === 'weekly') cursor = addWeeks(cursor, interval);
         else if (recurrence.frequency === 'monthly') cursor = addMonths(cursor, interval);
         else if (recurrence.frequency === 'yearly') cursor = addYears(cursor, interval);
@@ -85,14 +56,7 @@ router.post('/create', auth, async (req, res) => {
         const parentId = req.body.parentId?.[0];
         const code = shortId.generate();
 
-        const cleanSubTasks = subTasks
-            .filter(st => st && typeof st.name === 'string' && st.name.trim().length > 0)
-            .map(subtask => {return { name: subtask.name, status: !!subtask.status }})
-        console.log(eisenhower);
-        const existing = await Task.findOne({ title })
-        console.log(existing);
-        if (existing) { return res.json({ task: existing, error: 'Задача с таким названием уже существует!' }) }
-        console.log("NEN?")
+        const cleanSubTasks = subTasks.filter(st => st && typeof st.name === 'string' && st.name.trim().length > 0).map(subtask => {return { name: subtask.name, status: !!subtask.status }})
         const rec = recurrence?.frequency ? (() => {
             const freq = String(recurrence.frequency || '').toLowerCase();
             const allowed = ['daily','weekly','monthly','yearly','custom'];
@@ -102,18 +66,14 @@ router.post('/create', auth, async (req, res) => {
                 interval: Number.isFinite(+recurrence.interval) && +recurrence.interval > 0 ? +recurrence.interval : 1,
                 startDate: recurrence.startDate || (dateStart || dateEnd),
             };
-            if (Array.isArray(recurrence.byWeekDays)) out.byWeekDays = recurrence.byWeekDays.map(n=> +n).filter(n=> Number.isInteger(n) && n>=0 && n<=6);
-            if (Array.isArray(recurrence.byMonthDays)) out.byMonthDays = recurrence.byMonthDays.map(n=> +n).filter(n=> Number.isInteger(n) && n>=1 && n<=31);
             if (recurrence.endDate) out.endDate = recurrence.endDate;
             return out;
         })() : undefined;
-        console.log("BKB NEN?")
         const task = new Task({ code, epic, parentId, parentsTitles, status, title, description, isEvent,
             dateStart: dateStart ? new Date(dateStart) : undefined,
             dateEnd: dateEnd ? new Date(dateEnd) : undefined,
             eisenhower,
             subTasks: cleanSubTasks, owner: req.user.userId, isTemplate: !!rec || !!isTemplate, recurrence: rec });
-        console.log(task)
         await task.save()
         res.status(201).json({ task, error: undefined })
     } catch(e) {
@@ -124,25 +84,22 @@ router.post('/create', auth, async (req, res) => {
 
 router.put('/update/:id', async (req, res) => {
     try {
-        console.log(req.params.id);
-        const {_id, epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, recurrence, editScope} = req.body;
+        const {_id, epic, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence} = req.body;
         const parentId = req.body.parentId?.[0];
         const existing = await Task.findById(_id);
         if (!existing) return res.status(404).json({ error: 'Задача не найдена' });
 
-        // Определяем цель обновления: экземпляр или серия
-        if (editScope === 'series' && existing.templateId) {
-            // редактируем шаблон серии
-            const task = await Task.findByIdAndUpdate(existing.templateId, { $set: {
-                epic, parentId, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, recurrence
-            } }, { new: true });
-            return res.status(201).json({ task, error: undefined })
-        }
+        // // Определяем цель обновления: экземпляр или серия
+        // if (editScope === 'series' && existing.templateId) {
+        //     // редактируем шаблон серии
+        //     const task = await Task.findByIdAndUpdate(existing.templateId, { $set: {
+        //         epic, parentId, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, recurrence
+        //     } }, { new: true });
+        //     return res.status(201).json({ task, error: undefined })
+        // }
 
         // По умолчанию: обновляем сам документ (экземпляр или шаблон)
-        const task = await Task.findByIdAndUpdate( _id, { $set: {
-            epic, parentId, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, recurrence
-        } }, { new: true } );
+        const task = await Task.findByIdAndUpdate( _id, { epic, parentId, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence }, { new: true } );
 
         res.status(201).json({ task, error: undefined })
     } catch (err) { res.status(500).json({ error: err.message }) }
@@ -172,83 +129,55 @@ router.put('/habits/:id', async (req, res) => {
 
 router.get('/', auth, async (req, res) => {
     try {
-        const { period } = req.headers;
-        console.log(period);
-        const today = new Date(), tomorrow = new Date(), week = new Date(), month = new Date();
+        const today = new Date(), tomorrow = new Date(), month = new Date();
         today.setUTCHours(0, 0, 0, 0);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setUTCHours(23, 59, 59, 999);
-        console.log(tomorrow);
-        week.setDate(week.getDate() + 8);
-        week.setUTCHours(23, 59, 59, 999);
-        console.log(week);
-        month.setDate(month.getDate() + 1);
+        tomorrow.setUTCHours(0, 0, 0, 0);
         month.setMonth(month.getMonth() + 1);
         month.setUTCHours(23, 59, 59, 999);
-        console.log(month);
-        const periods = { today: tomorrow, week: week, month: month };
-        const periodEnd = periods[period] || month;
+        const periodEnd = month;
         const periodStart = today;
-        const periodFilter = period ? { $or: [{dateEnd: { $lt: periodEnd }}, {dateStart: { $lt: periodEnd }}] } : {};
-        const todayStr = today.toLocaleDateString('ru-RU');
-        const yesterday = today;
-        yesterday.setDate(today.getDate() - 1);
-        const yesterdayStr = yesterday.toLocaleDateString('ru-RU');
 
-
-        const todayHabits = await Task.find({ owner: req.user.userId, epic: 'Привычки', title: "Привычки_"+todayStr });
-        if (todayHabits.length === 0) {
-            const habits_temp = await Task.find({ owner: req.user.userId, epic: 'Привычки', title: "Привычки_шаблон" });
-            const [day, month, year] = todayStr.split('.');
-            const date = new Date(`${year}-${month}-${day}`);
-            const task = new Task({ code: shortid.generate(), epic: 'Привычки', status: false, title: 'Привычки_'+todayStr, description: 'Привычки', isEvent: false,
-                dateStart: date, dateEnd: date, eisenhower: 'A', subTasks: habits_temp[0].subTasks, owner: req.user.userId });
-            await task.save()
+        var habits = await Task.find({ owner: req.user.userId, epic: 'Привычки' });
+        for (const hab of habits) {
+            if (hab.title.startsWith('Привычки_')) {
+                console.log(hab.title, hab._id);
+                await Task.findByIdAndDelete(hab._id);
+            }
         }
 
-        const yesterdayHabits = await Task.find({ owner: req.user.userId, epic: 'Привычки', title: "Привычки_"+yesterdayStr });
-        if (yesterdayHabits.length === 0) {
-            const habits_temp = await Task.find({ owner: req.user.userId, epic: 'Привычки', title: "Привычки_шаблон" });
-            const [day, month, year] = yesterdayStr.split('.');
-            const date = new Date(`${year}-${month}-${day}`);
-            const task = new Task({ code: shortid.generate(), epic: 'Привычки', status: false, title: 'Привычки_'+yesterdayStr, description: 'Привычки', isEvent: false,
-                dateStart: date, dateEnd: date, eisenhower: 'A', subTasks: habits_temp[0].subTasks, owner: req.user.userId });
-            await task.save()
-        }
+        var tasks = await Task.find({ owner: req.user.userId });
+
         // 1) Сгенерировать недостающие экземпляры для шаблонов в окне периода
         const templates = await Task.find({ owner: req.user.userId, isTemplate: true });
         for (const tpl of templates) {
             const tplStart = tpl.recurrence?.startDate || tpl.dateStart || tpl.dateEnd || today;
             const baseStart = tpl.dateStart || tplStart;
             const baseEnd = tpl.dateEnd || tplStart;
-            for (const occ of iterateOccurrences(tpl.recurrence, periodStart, periodEnd)) {
-                const existingInstance = await Task.findOne({ owner: req.user.userId, templateId: tpl._id, instanceDate: occ });
-                if (!existingInstance) {
-                    const deltaMs = (new Date(baseEnd).getTime()) - (new Date(baseStart).getTime());
-                    const instStart = tpl.dateStart ? new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), new Date(baseStart).getHours(), new Date(baseStart).getMinutes(), 0, 0) : occ;
-                    const instEnd = tpl.dateStart ? new Date(instStart.getTime() + deltaMs) : occ;
-                    await Task.create({
-                        owner: req.user.userId,
-                        epic: tpl.epic,
-                        parentId: tpl.parentId,
-                        parentsTitles: tpl.parentsTitles,
-                        status: false,
-                        title: tpl.title,
-                        description: tpl.description,
-                        isEvent: tpl.isEvent,
-                        dateStart: instStart,
-                        dateEnd: instEnd,
-                        eisenhower: tpl.eisenhower,
-                        subTasks: tpl.subTasks,
-                        templateId: tpl._id,
-                        instanceDate: occ,
-                    });
-                }
+            for (const occ of iterateOccurrences(tpl.recurrence, (tpl.epic === 'Привычки' ? today : periodStart), (tpl.epic === 'Привычки' ? tomorrow : periodEnd))) {
+                const deltaMs = (new Date(baseEnd).getTime()) - (new Date(baseStart).getTime());
+                const instStart = tpl.dateStart ? new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), new Date(baseStart).getHours(), new Date(baseStart).getMinutes(), 0, 0) : occ;
+                const instEnd = tpl.dateStart ? new Date(instStart.getTime() + deltaMs) : occ;
+                tasks.push({
+                    owner: req.user.userId,
+                    epic: tpl.epic,
+                    parentId: tpl.parentId,
+                    parentsTitles: tpl.parentsTitles,
+                    status: false,
+                    title: tpl.title,
+                    description: tpl.description,
+                    isEvent: tpl.isEvent,
+                    dateStart: instStart,
+                    dateEnd: instEnd,
+                    eisenhower: tpl.eisenhower,
+                    subTasks: tpl.subTasks,
+                    templateId: tpl._id,
+                    instanceDate: occ,
+                });
             }
         }
 
         // 2) Вернуть задачи и экземпляры
-        const tasks = await Task.find({ owner: req.user.userId, ...periodFilter });
         res.json(tasks);
     } catch(e) { res.status(500).json({message: 'При загрузке задач на сервере возникла ошибка (Error: Разраб еблан...)'}) }
 });
@@ -262,11 +191,10 @@ router.get('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
     try {
+        const task = await Task.findById(req.params.id);
         await Task.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Задача удалена' });
-    } catch (e) {
-        res.status(500).json({ message: 'Ошибка при удалении задачи' });
-    }
+        res.json({ task, message: 'Задача удалена' });
+    } catch (e) { res.status(500).json({ message: 'Ошибка при удалении задачи' }) }
 });
 
 module.exports = router;

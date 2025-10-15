@@ -61,8 +61,8 @@ export const Dashboard = ({ tasks }) => {
         {![0, undefined].includes(tasks?.length) &&
             tasks.map((task) => (<div key={task._id} className="task my-4 rounded-2xl pb-[1px] bg-[#0f0f10]">
                 <div className="taskBlock1 bg-[#121213] rounded-2xl flex items-center">
-                    <div className="taskInfoBlock mx-2 my-4">
-                        <div className="taskSubBlock" id="subBlock1">
+                    <div className="taskInfoBlock flex flex-col items-start w-[calc(100%-7rem)] mx-2 my-4">
+                        <div className="taskSubBlock flex flex-row items-center h-auto break-all" id="subBlock1">
                             {['МегаФон','РУДН','ФК_Краснодар','Flow'].includes(task.epic)
                                 ? <img className="epicIcon size-6" src={`..\\img\\${epicToIcon[task.epic]}.png`} alt={task.epic} />
                                 : epicToIcon[task.epic]
@@ -73,7 +73,7 @@ export const Dashboard = ({ tasks }) => {
                             >{task.parentsTitles}</Badge>}
                             <h3 className="text-xl ml-3 text-[#e0e0e0]">{task.title}</h3>
                         </div>
-                        <div className="taskSubBlock mt-3" id="subBlock2">
+                        <div className="taskSubBlock flex flex-row items-center h-auto break-all mt-3" id="subBlock2">
                             <Badge
                                 w={6} h={6} px={2} py={1} rounded='md' mr={3} textAlign='center' fontSize='xs' lineHeight='1'
                                 variant='subtle' colorPalette={getEisenhowerColor[task.eisenhower]}

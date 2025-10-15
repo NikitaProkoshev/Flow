@@ -348,14 +348,6 @@ div.upDownSubTask > i {
 div.upDownSubTask > i:last-child {
     padding: 0 0 7px 0;
 }
-
-i.epicIcon#epicFlowIcon {
-    display: flex;
-    align-items: center;
-    font-style: unset;
-    font-weight: normal;
-}
-
 /* Стили для TasksPage */
 
 div.tasksList div.task,
@@ -373,56 +365,11 @@ div.habitsPage div.backHabits:hover {
         0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-div.tasksList div.task.doneTask * {
-    color: #bdbdbd;
-}
-
 div.tasksList div.task.doneTask div.taskBlock1 {
     background-color: rgba(33, 33, 33, 0.22);
 }
 
-div.tasksList div.task div.taskCheckerBlock span {
-    width: 1.5rem;
-    height: 1.5rem;
-}
-
-/* Стили информации задачи */
-div.tasksList div.task div.taskInfoBlock {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: calc(100% - 7rem);
-}
-
-div.tasksList div.task div.taskSubBlock {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    height: auto;
-    word-break: break-all;
-}
-
-div.tasksList
-    div.task
-    div.taskSubBlock#subBlock3
-    .subTask
-    > *:not(:first-child) {
-    margin-left: 13px;
-}
-
 /* Стили кнопки редактирования задачи */
-div.tasksList div.task div.taskEditBlock,
-div.frontHabits div.habitsInfoBlock i.material-icons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-div.tasksList div.task div.taskEditBlock i.material-icons,
-div.frontHabits div.habitsInfoBlock i.material-icons {
-    color: #e0e0e0;
-}
-
 .taskEditBlock {
   position: relative;
 }
@@ -448,12 +395,6 @@ div.backHabits i {
     margin: 13px 8px 0 8px;
     font-size: 32px;
     color: #e0e0e0;
-}
-
-div#block2 div.frontHabits {
-    box-shadow: -8px 0 17px 2px rgba(33, 33, 33, 0.14),
-        -3px 0 14px 2px rgba(33, 33, 33, 0.12),
-        -5px 0 5px -3px rgba(33, 33, 33, 0.2);
 }
 
 div.frontHabits div.habitsInfoBlock {
@@ -505,15 +446,6 @@ div.createTask {
     border-bottom: 1px solid #424242;
 }
 
-.input-block0 .epicIcon {
-    margin-right: 13px;
-    filter: grayscale(1);
-}
-
-.input-block0 button.selected .epicIcon {
-    filter: grayscale(0);
-}
-
 .input-block1 .input-fields3 {
     display: flex;
     flex-direction: row;
@@ -531,20 +463,6 @@ div.input-block3 > *:not(:first-child) {
     width: 100%;
 }
 
-div.input-block3 div.subTaskCheckerBlock {
-    margin: 0 13px 0 0;
-}
-
-div.input-block3 div.subTask button.deleteSubTask {
-    margin-left: 13px;
-}
-
-div.input-block4 {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
 div.input-block4 > div,
 div.habitsButtons > div:last-child {
     display: flex;
@@ -555,12 +473,6 @@ div.habitsButtons > div:last-child {
 div.input-block4 > div > *:not(:first-child),
 div.habitsSubTasksBlock > div:last-child > *:not(:first-child) {
     margin: 0 0 0 13px;
-}
-
-div.subTask {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
 }
 
 div.eisenhowerOption {
@@ -630,7 +542,7 @@ div.fc div.fc-toolbar.fc-header-toolbar {
 
 div.fc table.fc-scrollgrid-liquid {
     border-top-left-radius: 13px;
-    background-color: rgba(22,22,22,0.5);
+    background-color: #0e0e10;
     border: none;
 }
 
