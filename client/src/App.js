@@ -5,15 +5,16 @@ import { useAuth } from './hooks/auth.hook';
 import { AuthContext } from './context/AuthContext';
 import { SideBar } from './components/SideBar';
 import { MainContent } from './components/MainContent';
-import { SideBarProvider } from './context/SideBarContext';
-import { Loader } from './components/Loader';
-import { ChakraProvider, defaultSystem, Theme } from '@chakra-ui/react';
+import { ChakraProvider, Theme } from '@chakra-ui/react';
 import { epicToIcon } from './methods';
 import { system } from './theme';
-import { Toaster, toaster } from './components/ui/toaster';
+import { Toaster } from './components/ui/toaster';
+import { Loader } from './components/Loader';
+import { CreateTask } from './components/CreateTask.tsx';
+import { TasksProvider } from './context/TasksContext';
 
 export const EpicsContext = createContext(null);
-document.documentElement.style.setProperty('--fc-today-bg-color', 'rgba(22,22,22)');
+document.documentElement.style.setProperty('--fc-today-bg-color', '#131315');
 document.documentElement.style.setProperty('--epicsCount', Object.keys(epicToIcon).length);
 document.documentElement.style.setProperty('--tasksLength', Math.round((Object.keys(epicToIcon).length / 10) * 6));
 document.documentElement.style.setProperty('--otherLength', Math.round(Object.keys(epicToIcon).length - (Object.keys(epicToIcon).length / 10) * 6));
@@ -24,31 +25,30 @@ function App() {
     const isAuthenticated = !!token;
     const routes = useRoutes(isAuthenticated);
 
-    if (!ready) {
-        return <Loader />;
-    }
+    if (!ready) return <Loader />
 
     function disablecontext(e) {
         var clickedEl = (e==null) ? e.srcElement.tagName : e.target.tagName;
-        if (clickedEl == "IMG") return false
+        if (clickedEl === "IMG") return false
     }
     document.oncontextmenu = disablecontext;
 
     return (
         <AuthContext.Provider value={{ token, login, logout, userId, isAuthenticated }}>
-            <ChakraProvider value={system}>
-                <SideBarProvider>
-                    <EpicsContext.Provider value={[epics, setEpics]}>
-                        <Router>
-                            <Theme appearance="dark" colorPalette="gray">
-                                {isAuthenticated && <SideBar />}
-                                <MainContent>{routes}</MainContent>
-                                <Toaster />
-                            </Theme>
-                        </Router>
-                    </EpicsContext.Provider>
-                </SideBarProvider>
-            </ChakraProvider>
+            <TasksProvider>
+                <ChakraProvider value={system}>
+                        <EpicsContext.Provider value={[epics, setEpics]}>
+                            <Router>
+                                <Theme appearance="dark" colorPalette="gray">
+                                    {isAuthenticated && <SideBar />}
+                                    <MainContent>{routes}</MainContent>
+                                    <Toaster />
+                                    <CreateTask.Viewport />
+                                </Theme>
+                            </Router>
+                        </EpicsContext.Provider>
+                </ChakraProvider>
+            </TasksProvider>
         </AuthContext.Provider>
     );
 }

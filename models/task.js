@@ -14,14 +14,20 @@ const schema = new Schema({
     createDate: {type: Date, default: Date.now}, // Время и дата, когда создана задача
     eisenhower: {type: String}, // Разделение задач по важности (A/B/C/D)
     subTasks: [new Schema({
-        name: {
-            type: String,
-            required: true
-        },
-        status: {
-            type: Boolean,
-        }
-    }, { _id: true })]
+        name: { type: String, required: true },
+        status: { type: Boolean }
+    }, { _id: true })],
+
+    // Поля для повторяющихся задач
+    isTemplate: { type: Boolean, default: false }, // true для шаблонной задачи (серии)
+    templateId: { type: Types.ObjectId, ref: 'task' }, // ссылка на шаблон (для экземпляров)
+    instanceDate: { type: Date }, // дата экземпляра (нормализованная на начало дня)
+    recurrence: { // расписание повторения (только для шаблонов)
+        frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'] },
+        interval: { type: Number, default: 1 }, // каждые N единиц
+        startDate: { type: Date }, // старт повторения (обычно = dateEnd или dateStart)
+        endDate: { type: Date }, // дата окончания серии (опционально)
+    },
 })
 
 module.exports = model('task', schema)

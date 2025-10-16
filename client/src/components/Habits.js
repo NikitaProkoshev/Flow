@@ -1,184 +1,59 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { useHttp } from '../hooks/http.hook';
-import { todayString, yesterdayString } from '../methods';
-import { AuthContext } from '../context/AuthContext';
-import { upDownSubTask } from '../methods';
-import { FaPen, FaChevronLeft, FaChevronUp, FaChevronDown, FaChevronRight, FaXmark, FaPlus } from 'react-icons/fa6';
-import { Checkbox, Input, Button, IconButton } from '@chakra-ui/react';
-import { toaster } from './ui/toaster';
+import React, { useState } from 'react';
+import { dateToString } from '../methods';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
+import { Checkbox, IconButton } from '@chakra-ui/react';
+import { useTasks } from '../context/TasksContext';
+import { HabitsSkeleton } from './HabitsSkeleton';
+// import { useHttp } from '../hooks/http.hook';
+// import { AuthContext } from '../context/AuthContext';
 
-export const Habits = ({ editState, checkingState, todayTask, yesterdayTask, templateTask, }) => {
-    const auth = useContext(AuthContext);
-    const { request } = useHttp();
-    const { token } = useContext(AuthContext);
-    const [subTasks, setSubTasks] = useState([]);
-    const [frontDay, setFrontDay] = useState(todayString);
+export const Habits = ({ habits }) => {
+    const { loading } = useTasks();
+    // const { request } = useHttp();
+    // const { token } = useContext(AuthContext);
+    const todayString = dateToString(new Date());
+    const yesterdayString = dateToString(new Date().setDate(new Date().getDate() - 1));
+    const [frontIsToday, setFrontIsToday] = useState(true);
 
-    useEffect(() => {setSubTasks(templateTask?.subTasks)}, [todayTask]);
+    const todayHabits = habits.filter(habit => habit.instanceDate.slice(0, 10) === todayString);
+    const yesterdayHabits = habits.filter(habit => habit.instanceDate.slice(0, 10) === yesterdayString);
 
-    async function checkingSubTask(e, task, subTask) {
-        const { _id, status, subTasks } = task;
-        let subTasksCopy = subTasks.slice(0);
-        const newSubTasks = subTasksCopy.map((sT) => 
-            (sT._id === subTask._id) ? { name: subTask.name, status: !subTask.status, _id: subTask._id } : sT
-        );
-        checkingState[1](_id);
-        await request(
-            '/api/task/check/' + task._id,
-            'PUT',
-            { _id: _id, status: status, subTasks: newSubTasks },
-            { Authorization: `Bearer ${token}` }
-        );
-        checkingState[1]('');
-    }
+    if (loading) return <HabitsSkeleton />;
 
-    function syncSubTasks(sourceTask, newTask) {
-        return newTask.map((subTask) => {
-            const isExist = sourceTask.find((sT) => sT._id === subTask._id);
-            return (isExist) ? { _id: isExist._id, name: subTask.name, status: isExist.status } : subTask
-        })
-    }
+    // async function checkingSubTask(e, task, subTask) {
+    //     const { _id, status, subTasks } = task;
+    //     let subTasksCopy = subTasks.slice(0);
+    //     const newSubTasks = subTasksCopy.map( (sT) => (sT._id === subTask._id) ? { name: subTask.name, status: !subTask.status, _id: subTask._id } : sT );
+    //     await request('/api/task/check/' + task._id, 'PUT', { _id: _id, status: status, subTasks: newSubTasks }, { Authorization: `Bearer ${token}` });
+    // }
 
-    const cancelChanges = async (event) => editState[1]('');
+    {[0, undefined].includes(todayHabits?.length) && <div className="noHabitsMessage">Пока привычек нет</div>}
 
-    const saveChanges = async (event) => {
-        try {
-            await request(
-                `/api/task/habits/${templateTask._id}`,
-                'PUT',
-                { ...templateTask, subTasks: subTasks },
-                { Authorization: `Bearer ${auth.token}` }
-            );
-            const newTask = subTasks.slice(0);
-            const newYesterdaySubTask = syncSubTasks(yesterdayTask.subTasks, newTask);
-            await request(`/api/task/habits/${yesterdayTask._id}`, 'PUT', { ...yesterdayTask, subTasks: newYesterdaySubTask }, { Authorization: `Bearer ${auth.token}` });
-            const newTodaySubTask = syncSubTasks(todayTask.subTasks, subTasks);
-            const frontData = await request(`/api/task/habits/${todayTask._id}`, 'PUT', { ...todayTask, subTasks: newTodaySubTask }, { Authorization: `Bearer ${auth.token}` });
-            if (frontData) {
-                toaster.create({ description: 'Задача обновлена!', type: 'success' })
-                editState[1]('');
-            }
-        } catch (e) {}
-    };
 
-    const newSubTask = () => {
-        const newId = Math.max(subTasks?.length, 0) + 1;
-        setSubTasks([...subTasks, { _id: newId, name: ``, status: false }]);
-    };
+    const backHabitsInfo = ((habits) => (<div className="backHabitsInfo flex flex-col items-center my-4">
+        <IconButton variant="ghost" minW={7} h={7} colorPalette='gray' mx={2} onClick={(e) => setFrontIsToday(!frontIsToday)}>
+            {frontIsToday ? <FaChevronLeft className="text-2xl text-[#e0e0e0]" /> : <FaChevronRight className="text-2xl text-[#e0e0e0]" />}
+        </IconButton>
+        {habits && habits.map((habit) => (
+            <Checkbox.Root w={5} h={6} size="md" spacing="1rem" variant='outline' colorPalette='green' disabled={true} defaultChecked={habit.status} mt={3}><Checkbox.HiddenInput /><Checkbox.Control w={5} h={5} /></Checkbox.Root>
+        ))}
+    </div>))
 
-    return (
-        <div className="habitsPage my-4 rounded-2xl bg-[rgba(22,22,22,0.5)]">
-            {editState[0] !== 'Привычки_шаблон'
-                ? <div className="backHabits flex flex-row">
-                    {frontDay === todayString && (
-                        <div className="backHabitsInfo flex flex-col items-center">
-                            <IconButton variant="ghost" colorPalette='gray' m={2} mt={4} onClick={(e) => setFrontDay(yesterdayString)}>
-                                <FaChevronLeft className="text-2xl text-[#e0e0e0]" />
-                            </IconButton>
-                            {yesterdayTask &&
-                                yesterdayTask.subTasks.map((subTask) => (
-                                    <div className="subTask my-2">
-                                        <Checkbox.Root
-                                            w={4} h={4} size="md" spacing="1rem" variant='outline' colorPalette='green'
-                                            disabled={true} defaultChecked={subTask.status}
-                                        >
-                                            <Checkbox.HiddenInput />
-                                            <Checkbox.Control w={4} h={4} />
-                                        </Checkbox.Root>
-                                    </div>
-                                ))}
-                        </div>
-                    )}
-                    <div className="frontHabits w-full p-4 bg-[#161616] rounded-2xl">
-                        <div className="habitsInfoBlock w-full">
-                            <h3 className="text-2xl w-full">{frontDay === todayString ? 'Сегодня' : 'Вчера'}</h3>
-                            <IconButton variant="ghost" colorPalette='gray' onClick={(e) => editState[1]('Привычки_шаблон')}><FaPen className="text-[1.5rem] text-[#e0e0e0]"/></IconButton>
-                        </div>
-                        <div className="habitsSubTasksBlock grid grid-rows-auto gap-2 mt-3">
-                            {[0, undefined].includes(subTasks?.length)
-                                ? <div className="noHabitsMessage">Пока привычек нет(</div>
-                                : (frontDay === todayString ? todayTask : yesterdayTask).subTasks.map((subTask) => 
-                                    <div key={subTask.id} className="subTask w-full h-6">
-                                        <Checkbox.Root
-                                            w='100%' h={4} fontSize='xl' size="md" spacing="1rem" variant='outline' colorPalette='green'
-                                            onCheckedChange={ (e) => checkingSubTask(e, frontDay === todayString ? todayTask : yesterdayTask, subTask) }
-                                            checked={subTask.status}
-                                        >
-                                            <Checkbox.HiddenInput />
-                                            <Checkbox.Control w={4} h={4} />
-                                            <Checkbox.Label><p className="text-xl">{subTask.name}</p></Checkbox.Label>
-                                        </Checkbox.Root>
-                                    </div>
-                                )
-                            }
-                        </div>
-                    </div>
-                    {frontDay === yesterdayString && (
-                        <div className="backHabitsInfo flex flex-col items-center">
-                            <IconButton variant="ghost" colorPalette='gray' m={2} mt={4} onClick={(e) => setFrontDay(todayString)}>
-                                <FaChevronRight className="text-2xl text-[#e0e0e0]" />
-                            </IconButton>
-                            {todayTask !== undefined &&
-                                todayTask.subTasks.map((subTask) => 
-                                    <div className="subTask my-2">
-                                        <Checkbox.Root
-                                            w={4} h={4} size="md" spacing="1rem" variant='outline' colorPalette='green'
-                                            disabled={true} defaultChecked={subTask.status}
-                                        >
-                                            <Checkbox.HiddenInput />
-                                            <Checkbox.Control w={4} h={4} />
-                                        </Checkbox.Root>
-                                    </div>
-                                )}
-                        </div>
-                    )}</div>
-                : <div className="habitsEdit p-4">
-                    <div className="habitsSubTasksBlock">
-                        {![0, undefined].includes(subTasks?.length) &&
-                            subTasks.map((subTask, index) => {
-                                return (
-                                    <div key={subTask._id} className="subTask w-full mb-3">
-                                        <Input value={subTask.name} variant="flushed" color="#e0e0e0"
-                                            onChange={(e) => setSubTasks(subTasks.map((t) => t._id === subTask._id ? {...t, name: e.target.value} : t))}
-                                        />
-                                        {/*  */}
-                                        <IconButton className="upDownSubTask" variant="ghost" colorPalette='gray' fontSize='2xl' color='#4e4e4e'
-                                            flexDirection='column' gap={0} border={0}>
-                                            {/* <div className="upDownSubTask w-full flex-col"> */}
-                                            {index !== 0 && (
-                                                <div
-                                                    className='upIcon w-full flex justify-center'
-                                                    onClick={(e) => upDownSubTask(e.target.closest('.upIcon'), subTasks, subTask, setSubTasks)}
-                                                ><FaChevronUp /></div>
-                                            )}
-                                            {index !== subTasks.length - 1 && (
-                                                <div
-                                                    className='downIcon w-full flex justify-center'
-                                                    onClick={(e) => upDownSubTask(e.target.closest('.downIcon'), subTasks, subTask, setSubTasks)}
-                                                ><FaChevronDown /></div>
-                                            )}
-                                            {/* </div> */}
-                                        </IconButton>
-                                        {/* </div> */}
-                                        <IconButton 
-                                            className="deleteSubTask" variant="ghost" colorPalette='gray' fontSize='2xl' color='#4e4e4e'
-                                            onClick={() => setSubTasks( subTasks.filter((t) => t._id !== subTask._id))}
-                                        ><FaXmark /></IconButton>
-                                    </div>
-                                );
-                            })}
-                        <div className="habitsButtons flex justify-between w-full">
-                            <Button className="newSubTask" variant="ghost" colorPalette='gray' size='sm' onClick={newSubTask}>
-                                <FaPlus className="text-2xl text-[#e0e0e0]" />Добавить подзадачу</Button>
-                            <div>
-                                <Button variant="ghost" colorPalette='gray' size='sm' onClick={cancelChanges}>
-                                    <FaXmark className="text-[1.5rem]" /></Button>
-                                <Button variant="ghost" colorPalette='gray' size='sm' onClick={saveChanges}>Обновить привычки</Button>
+    return ( <div className="habitsPage my-4 rounded-2xl bg-[#0e0e10]">
+            <div className="backHabits flex flex-row">
+                {frontIsToday && backHabitsInfo(yesterdayHabits)}
+                <div className="frontHabits w-full p-4 bg-[#131315] rounded-2xl">
+                    <h3 className="text-xl text-[#e0e0e0]">{frontIsToday ? 'Сегодня' : 'Вчера'}</h3>
+                    <div className="habitsSubTasksBlock grid grid-rows-auto gap-3 mt-3">
+                        {(frontIsToday ? todayHabits : yesterdayHabits).map((habit) => 
+                            <div key={habit.id} className="subTask w-full h-6">
+                                <Checkbox.Root w='full' h={6} size="md" spacing="1rem" variant='outline' colorPalette='green' checked={habit.status}>
+                                    <Checkbox.HiddenInput /><Checkbox.Control w={5} h={5} /><Checkbox.Label fontSize='md' fontWeight='400'>{habit.title}</Checkbox.Label>
+                                </Checkbox.Root>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
-            }
-        </div>
-    );
+                {!frontIsToday && backHabitsInfo(todayHabits)}</div>
+    </div>);
 };

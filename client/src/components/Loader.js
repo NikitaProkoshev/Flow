@@ -1,19 +1,8 @@
 import React from 'react';
+import { Spinner } from '@chakra-ui/react';
 
 export const Loader = () => {
-    <div style={{display: 'flex', justifyContent: 'center', paddingTop: '2rem'}}>
-        <div className="preloader-wrapper active">
-            <div className="spinner-layer spinner-red-only">
-                <div className="circle-clipper left">
-                    <div className="circle" />
-                </div>
-                <div className="gap-patch">
-                    <div className="circle" />
-                </div>
-                <div className="circle-clipper right">
-                    <div className="circle" />
-                </div>
-            </div>
-        </div>
+    <div classname="flex justify-center pt-8 bg-[#09090B]">
+        <Spinner />
     </div>
 }
