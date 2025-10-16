@@ -13,7 +13,6 @@ interface Task {
     _id?: string;
     epic?: string;
     parentId?: string;
-    parentsTitles?: string;
     title?: string;
     description?: string;
     isEvent?: boolean;
@@ -74,7 +73,6 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         try {
             if (required === 0) {
                 var data;
-                const parentTask = (parentId.length !== 0) ? allTasks?.filter(task => task._id === parentId[0])[0] : undefined;
                 const optionalFields = tab === 'h'
                     ? { epic: 'Привычки', isTemplate: true, recurrence: { frequency, interval } }
                     : ( tab === 't'
@@ -83,7 +81,6 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             eisenhower: eisenhower,
                             isEvent: isEvent,
                             parentId: parentId,
-                            parentsTitles: (parentTask) ? (parentTask.parentsTitles ? parentTask.parentsTitles+' • ' : '') + parentTask.title : undefined,
                             dateStart: toUTCString(dateStart, timeStart),
                             description: desc,
                             subTasks: subTasks}
@@ -92,7 +89,6 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             eisenhower: eisenhower,
                             isEvent: isEvent,
                             parentId: parentId,
-                            parentsTitles: (parentTask) ? (parentTask.parentsTitles ? parentTask.parentsTitles+' • ' : '') + parentTask.title : undefined,
                             dateStart: toUTCString(dateStart, timeStart),
                             description: desc,
                             subTasks: subTasks,
