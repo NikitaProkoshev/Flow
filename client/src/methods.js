@@ -3,7 +3,21 @@ import { toaster } from './components/ui/toaster';
 
 export const getEisenhowerColor = {'A': 'red', 'B': 'yellow', 'C': 'green', 'D': 'cyan'}
 
+// Функция для преобразования локального времени в UTC
+export const toUTCString = (dateString, timeString) => {
+    if (!dateString) return '';
+    
+    // Создаем дату в локальной временной зоне пользователя
+    const localDateTime = timeString ? `${dateString}T${timeString}` : `${dateString}T00:00:00`;
+    const localDate = new Date(localDateTime);
+    
+    // Возвращаем в формате ISO UTC
+    return localDate.toISOString();
+}
+
 export const dateToString = (date) => {
+    if (!date) return '';
+    // Если дата в формате ISO (с Z), она уже в UTC и будет правильно отображена в локальной зоне
     return new Date(date).toLocaleDateString('en-ca', {
         year: 'numeric',
         month: 'numeric',
@@ -68,37 +82,35 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
     const formatTime = (date) =>  date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
     const formatDate = (date, showYear = false) => date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', ...(showYear && { year: 'numeric' }) });
 
+    console.log(fontSize, color);
+
     if (!dateStart || dateStart?.getFullYear() === 1970) {
-        return (
-            <div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
-                <span className={`text-${fontSize || 'md'} font-medium`}> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>
-                {endHasTime && (
-                    <><span className={`text-[${color || '#a0a0a0'}]`}>•</span><span className="text-md">{formatTime(dateEnd)}</span></>
-                )}
-            </div>
-        );
+        return (<div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
+            <span className={`text-${fontSize || 'md'} font-medium`}> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>
+            {endHasTime && (
+                <><span className={`text-[${color || '#a0a0a0'}]`}>•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateEnd)}</span></>
+            )}
+        </div>)
     }
 
     const sameDay = dateStart.toDateString() === dateEnd.toDateString();
     return (
-        <div className="flex items-center space-x-2 text-[#a0a0a0]">
+        <div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
             <div className="flex items-center space-x-1">
-                <span className="text-md font-medium">{isToday(dateStart) ? 'Сегодня' : formatDate(dateStart, dateStart.getFullYear() !== today.getFullYear())}</span>
-                {startHasTime && <><span className="text-gray-500">•</span><span className="text-md">{formatTime(dateStart)}</span></>}
+                <span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateStart) ? 'Сегодня' : formatDate(dateStart, dateStart.getFullYear() !== today.getFullYear())}</span>
+                {startHasTime && <><span className="text-gray-500">•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateStart)}</span></>}
             </div>
-            <FaArrowRight className="text-[#a0a0a0] text-md" />
+            <FaArrowRight className={`text-[${color || '#a0a0a0'}] text-${fontSize || 'md'}`} />
             <div className="flex items-center space-x-1">
-                {!sameDay && (<span className="text-md font-medium">{isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear() )}</span>)}
-                {endHasTime && (
-                    <>
-                        {!sameDay && (
-                            <span className="text-[#a0a0a0]">•</span>
-                        )}
-                        <span className="text-md">
-                            {formatTime(dateEnd)}
-                        </span>
-                    </>
-                )}
+                {!sameDay && (<span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear() )}</span>)}
+                {endHasTime && (<>
+                    {!sameDay && (
+                        <span className={`text-[${color || '#a0a0a0'}]`}>•</span>
+                    )}
+                    <span className={`text-${fontSize || 'md'}`}>
+                        {formatTime(dateEnd)}
+                    </span>
+                </>)}
             </div>
         </div>
     );
@@ -107,7 +119,7 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
 export function formatRecurrencePeriod(template) {
     const { recurrence } = template;
     
-    if (!recurrence || !recurrence.frequency) return '';
+    if (!recurrence) return '';
 
     const isToday = (date) => date.toDateString() === today.toDateString();
     const formatDate = (date, showYear = false) => date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', ...(showYear && { year: 'numeric' }) });

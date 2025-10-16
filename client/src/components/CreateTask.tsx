@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useHttp } from '../hooks/http.hook';
 import { AuthContext } from '../context/AuthContext';
-import { dateToString, getEisenhowerColor, formatDateDisplay } from '../methods';
+import { dateToString, getEisenhowerColor, formatDateDisplay, toUTCString } from '../methods';
 import { epicToIcon, epicToColor, upDownSubTask, formatRecurrenceFrequency, formatRecurrencePeriod } from '../methods';
 import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box, Select, createListCollection, createOverlay, Dialog, Badge, Textarea, Popover, Editable, Text } from '@chakra-ui/react';
 import { FaChevronUp, FaChevronDown, FaPlus, FaXmark, FaAt, FaRepeat, FaTrash } from 'react-icons/fa6';
@@ -84,9 +84,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             isEvent: isEvent,
                             parentId: parentId,
                             parentsTitles: (parentTask) ? (parentTask.parentsTitles ? parentTask.parentsTitles+' • ' : '') + parentTask.title : undefined,
-                            dateStart: !([undefined, ''].includes(dateStart))
-                                ? dateStart.slice(0, 11) + ([undefined, ''].includes(timeStart) ? '' : 'T' + timeStart)
-                                : '',
+                            dateStart: toUTCString(dateStart, timeStart),
                             description: desc,
                             subTasks: subTasks}
                         : {
@@ -95,9 +93,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             isEvent: isEvent,
                             parentId: parentId,
                             parentsTitles: (parentTask) ? (parentTask.parentsTitles ? parentTask.parentsTitles+' • ' : '') + parentTask.title : undefined,
-                            dateStart: !([undefined, ''].includes(dateStart))
-                                ? dateStart.slice(0, 11) + ([undefined, ''].includes(timeStart) ? '' : 'T' + timeStart)
-                                : '',
+                            dateStart: toUTCString(dateStart, timeStart),
                             description: desc,
                             subTasks: subTasks,
                             isTemplate: true,
@@ -109,9 +105,9 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                         }
                     )
                 if (Object.keys(task).length === 0) {
-                    data = await request('/api/task/create', 'POST', { title: title, status: false, dateEnd: dateEnd.slice(0, 11) + ([undefined, ''].includes(timeEnd) ? '' : 'T' + timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
+                    data = await request('/api/task/create', 'POST', { title: title, status: false, dateEnd: toUTCString(dateEnd, timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
                 } else {
-                    data = await request(`/api/task/update/${task._id}`, 'PUT', { _id: task._id, status: false, title: title, dateEnd: dateEnd.slice(0, 11) + ([undefined, ''].includes(timeEnd) ? '' : 'T' + timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
+                    data = await request(`/api/task/update/${task._id}`, 'PUT', { _id: task._id, status: false, title: title, dateEnd: toUTCString(dateEnd, timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
                 }
                 toaster.create({description: data.error || `Задача ${Object.keys(task).length > 0 ? 'обновлена' : 'создана'}!`, type: data.error ? 'error' : 'success' });
                 if (!data.error) {
@@ -238,15 +234,15 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                         </Box>
                         <Box display='flex'>
                             {/* Мероприятие */}
-                            {tab !== 'h' && <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' color='#e0e0e0' mr={2} onClick={() => setIsEvent(!isEvent)} px={2}>{isEvent ? <BsCalendarCheck /> : <BsCalendarX />}</Badge>}
+                            {tab !== 'h' && <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' mr={2} onClick={() => setIsEvent(!isEvent)} px={2} color={isEvent ? '#e0e0e0' : '#52525b'} boxShadowColor={isEvent ? '#e4e4e7' : '#52525b'}>{isEvent ? <BsCalendarCheck /> : <BsCalendarX />}</Badge>}
                             {/* Родитель (для всех, кроме привычек)*/}
                             { tab !== 'h' && (
                                 <Combobox.Root variant='subtle' collection={collection} openOnClick value={parentId} onValueChange={(e) => setParentId(e.value)} onInputValueChange={(e) => filter(e.inputValue)} 
-                                    w='auto' size='xs' color='#e0e0e0' mr={2} positioning={{placement: 'bottom-start'}}>
-                                    <Badge w={`${parentWidth}${parentId.length > 0 ? ' + 0.375rem' : ''} + 2.375rem)`} h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' color='#e0e0e0' px={0}>
+                                    w='auto' size='xs' color='#e0e0e0' mr={2} positioning={{placement: 'bottom-start'}} >
+                                    <Badge variant="outline" colorPalette="grey" w={`${parentWidth}${parentId.length > 0 ? ' + 0.375rem' : ''} + 2.375rem)`} h={8} px={0} rounded='md' fontSize='md' color={parentId.length > 0 ? '#e0e0e0' : '#52525b'} boxShadowColor={parentId.length > 0 ? '#e4e4e7' : '#52525b'}> {/* 9ca3af */}
                                         <Combobox.Control display='flex' alignItems='center' px={2}>
                                                 <FaAt />
-                                                <Combobox.Input placeholder="Родитель" value={collection.items.find((item: any) => item.value === parentId[0])?.label} px={0} backgroundColor='transparent' border='none' _focusVisible={{outlineWidth: '0px !important'}} w={`${parentWidth})`} ml='0.375rem'/>
+                                                <Combobox.Input placeholder="Родитель" _placeholder={{color: '#52525b'}} value={collection.items.find((item: any) => item.value === parentId[0])?.label} px={0} backgroundColor='transparent' border='none' _focusVisible={{outlineWidth: '0px !important'}} w={`${parentWidth})`} ml='0.375rem'/>
                                             <Combobox.IndicatorGroup px={0}><Combobox.ClearTrigger /></Combobox.IndicatorGroup>
                                         </Combobox.Control>
                                     </Badge>
@@ -267,9 +263,10 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             { ['h', 'r'].includes(tab) && (
                                 <Popover.Root lazyMount unmountOnExit positioning={{placement: 'bottom-start'}}>
                                     <Popover.Trigger fontSize='xs' color='#e0e0e0' mr={2} asChild>
-                                        <Badge h={8} variant="outline" colorPalette="grey" rounded='md'>
+                                        <Badge h={8} variant="outline" colorPalette="grey" rounded='md' color={frequency && interval ? '#e0e0e0' : '#52525b'} boxShadowColor={frequency && interval ? '#e4e4e7' : '#52525b'}>
                                             <FaRepeat />
-                                            {((interval === 1 ? frequencyCollection.items.find(e => e.value === frequency)?.label : interval+' '+formatRecurrenceFrequency({recurrence: { frequency, interval }}))) || 'Частота'}</Badge>
+                                            {((interval === 1 ? frequencyCollection.items.find(e => e.value === frequency)?.label : interval+' '+ formatRecurrenceFrequency({recurrence: { frequency, interval }}))) || 'Частота'}
+                                        </Badge>
                                     </Popover.Trigger>
                                     <Popover.Positioner>
                                         <Popover.Content backgroundColor='#161616' w='auto !important'>
@@ -302,7 +299,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             { tab === 'r' && (
                                 <Popover.Root lazyMount unmountOnExit>
                                     <Popover.Trigger fontSize='xs' color='#e0e0e0' mr={2} asChild>
-                                        <Badge h={8} variant="outline" colorPalette="grey" rounded='md'><BsCalendar3Range />{formatRecurrencePeriod({recurrence: { startDate: recStartDate, endDate: recEndDate }}) || 'Интервал'}</Badge>
+                                        <Badge h={8} variant="outline" colorPalette="grey" rounded='md' color={recStartDate && recEndDate  ? '#e0e0e0' : '#52525b'} boxShadowColor={recStartDate && recEndDate ? '#e4e4e7' : '#52525b'}><BsCalendar3Range />{formatRecurrencePeriod({ recurrence: { startDate: recStartDate, endDate: recEndDate } }) || 'Интервал'}</Badge>
                                     </Popover.Trigger>
                                     <Popover.Positioner>
                                         <Popover.Content backgroundColor='#161616' w='auto !important'>
@@ -318,7 +315,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             {/* Дата (для всех)*/}
                             <Popover.Root lazyMount unmountOnExit>
                                 <Popover.Trigger asChild>
-                                    <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' color='#e0e0e0' mr={2} px={2}>
+                                    <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' mr={2} px={2} color={dateEnd ? '#e0e0e0' : '#52525b'} boxShadowColor={dateEnd ? '#e4e4e7' : '#52525b'}>
                                         <BsCalendar />
                                         {formatDateDisplay(dateStart ? new Date(dateStart + (timeStart ? 'T'+timeStart+':00' : 'T00:00:00')) : undefined,
                                             new Date(dateEnd + (timeEnd ? 'T'+timeEnd+':00' : 'T00:00:00')), !!timeStart, !!timeEnd, 'xs', '#e0e0e0')}
@@ -330,28 +327,24 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                                             <div className="input-fields3 flex items-center">
                                                 {tab !== 'h' && (<>
                                                     <Box w={24}>
-                                                        <Input 
-                                                            className={(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined) ? 'required' : ''}
+                                                        <Input required={(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined)}
                                                             id="taskDateStart" variant="flushed" type="date" value={dateStart} min="2002-11-22" max={dateEnd} width='6rem' color='#e0e0e0'
                                                             onChange={(e) => setDateStart(e.target.value)}
                                                         />
-                                                        <Input
-                                                            className={isEvent && timeStart === undefined ? ' required' : ''} id="taskTimeStart" color='#e0e0e0'
+                                                        <Input required={isEvent && timeStart === undefined} id="taskTimeStart" color='#e0e0e0'
                                                             variant="flushed" type="time" value={timeStart} max={(dateStart === dateEnd && timeEnd) ? timeEnd : undefined} width='auto'
                                                             onChange={(e) => setTimeStart(e.target.value)}
                                                         />
                                                     </Box>
-                                                    <p className='my-3'>➜</p>
+                                                    <p className='mx-3'>➜</p>
                                                 </>)}
                                                 <Box w={24}>
-                                                    <Input
-                                                        className={dateEnd === 'Invalid Date' ? ' required' : ''} id="taskDateEnd" color='#e0e0e0'
+                                                    <Input required={dateEnd === 'Invalid Date'} id="taskDateEnd" color='#e0e0e0'
                                                         variant="flushed" type="date" value={dateEnd}
                                                         min={dateStart === undefined ? '2002-11-22' : dateStart} max="2099-12-31" width='6rem'
                                                         onChange={(e) => setDateEnd(e.target.value)}
                                                     />
-                                                    {tab !== 'h' && (<Input
-                                                        className={isEvent && timeEnd === undefined ? ' required' : ''} id="taskTimeEnd" colorPalette='gray'
+                                                    {tab !== 'h' && (<Input required={isEvent && timeEnd === undefined} id="taskTimeEnd" colorPalette='gray'
                                                         variant="flushed" type="time" value={timeEnd} width='auto' color='#e0e0e0'
                                                         min={(dateStart === dateEnd && timeStart) ? timeStart : undefined}
                                                         onChange={(e) => setTimeEnd(e.target.value)}
