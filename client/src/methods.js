@@ -82,8 +82,6 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
     const formatTime = (date) =>  date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
     const formatDate = (date, showYear = false) => date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', ...(showYear && { year: 'numeric' }) });
 
-    console.log(fontSize, color);
-
     if (!dateStart || dateStart?.getFullYear() === 1970) {
         return (<div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
             <span className={`text-${fontSize || 'md'} font-medium`}> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>

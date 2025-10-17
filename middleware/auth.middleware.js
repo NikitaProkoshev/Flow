@@ -19,6 +19,8 @@ module.exports = (req, res, next) => {
         next()
 
     } catch (e) {
+        req.user = null;
+        req.token = null;
         res.status(401).json({ message: "Нет авторизации" })
     }
 }

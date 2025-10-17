@@ -13,10 +13,10 @@ interface Task {
     _id?: string;
     epic?: string;
     parentId?: string;
-    parentsTitles?: string;
     title?: string;
     description?: string;
     isEvent?: boolean;
+    isProject?: boolean;
     dateStart?: string ;
     dateEnd?: string | Date;
     eisenhower?: string;
@@ -36,7 +36,7 @@ interface CreateTaskProps {
 }
 
 export const CreateTask = createOverlay<CreateTaskProps>((props) => {
-    const { allTasks, updateTasks } = useTasks();
+    const { projects, updateTasks } = useTasks();
     const { task, ...rest } = props;
     const auth = useContext(AuthContext);
     const { request } = useHttp();
@@ -74,35 +74,13 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         try {
             if (required === 0) {
                 var data;
-                const parentTask = (parentId.length !== 0) ? allTasks?.filter(task => task._id === parentId[0])[0] : undefined;
-                const optionalFields = tab === 'h'
-                    ? { epic: 'Привычки', isTemplate: true, recurrence: { frequency, interval } }
-                    : ( tab === 't'
-                        ? {
-                            epic: epic, 
-                            eisenhower: eisenhower,
-                            isEvent: isEvent,
-                            parentId: parentId,
-                            parentsTitles: (parentTask) ? (parentTask.parentsTitles ? parentTask.parentsTitles+' • ' : '') + parentTask.title : undefined,
-                            dateStart: toUTCString(dateStart, timeStart),
-                            description: desc,
-                            subTasks: subTasks}
-                        : {
-                            epic: epic, 
-                            eisenhower: eisenhower,
-                            isEvent: isEvent,
-                            parentId: parentId,
-                            parentsTitles: (parentTask) ? (parentTask.parentsTitles ? parentTask.parentsTitles+' • ' : '') + parentTask.title : undefined,
-                            dateStart: toUTCString(dateStart, timeStart),
-                            description: desc,
-                            subTasks: subTasks,
-                            isTemplate: true,
-                            recurrence: frequency ? {
-                                frequency, interval,
-                                startDate: recStartDate,
-                                endDate: recEndDate,
-                            } : undefined
-                        }
+                const optionalFields = tab === 'h' ? { epic: 'Привычки', isTemplate: true, recurrence: { frequency, interval } }
+                    : (tab === 'p' ? { epic: epic, eisenhower: eisenhower, parentId: parentId, dateStart: toUTCString(dateStart, timeStart), description: desc, isProject: true }
+                        :( tab === 't'? { epic: epic, eisenhower: eisenhower, isEvent: isEvent, parentId: parentId, dateStart: toUTCString(dateStart, timeStart), description: desc, subTasks: subTasks}
+                            : { epic: epic, eisenhower: eisenhower, isEvent: isEvent, parentId: parentId, dateStart: toUTCString(dateStart, timeStart), description: desc, subTasks: subTasks, isTemplate: true,
+                                recurrence: frequency ? { frequency, interval, startDate: recStartDate, endDate: recEndDate } : undefined
+                            }
+                        )
                     )
                 if (Object.keys(task).length === 0) {
                     data = await request('/api/task/create', 'POST', { title: title, status: false, dateEnd: toUTCString(dateEnd, timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
@@ -124,11 +102,8 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
     };
 
     const { contains } = useFilter({ sensitivity: "base" })
-    const { collection, filter } = useListCollection({
-        initialItems: allTasks?.map(({ title, _id }) => (_id ? { label: title, value: _id } : null)).filter(Boolean) || [], 
-        filter: contains
-    })
-    const tabsCollection = createListCollection({items: [{label: "Задача", value: "t"}, {label: "Повторяющаяся задача", value: "r"}, {label: "Привычка", value: "h"}]})
+    const { collection, filter } = useListCollection({ initialItems: projects?.map(({ title, _id }) => (_id ? { label: title, value: _id } : null)).filter(Boolean) || [], filter: contains })
+    const tabsCollection = createListCollection({items: [{label: "Задача", value: "t"}, {label: "Повторяющаяся задача", value: "r"}, {label: "Привычка", value: "h"}, {label: "Проект", value: "p"}]})
     const eisenhowerCollection = createListCollection({items: [{ label: "A", value: "A" }, { label: "B", value: "B" }, { label: "C", value: "C" }, { label: "D", value: "D" }]})
     const epicCollection = createListCollection({items: [{label: "МегаФон", value: "МегаФон"}, {label: "РУДН", value: "РУДН"}, {label: "Личное", value: "Личное"}, {label: "Семья", value: "Семья"}, {label: "Уля", value: "Уля"}, {label: "Поездки", value: "Поездки"}, {label: "ФК Краснодар", value: "ФК_Краснодар"}, {label: "Flow", value: "Flow"}]})
     const frequencyCollection = createListCollection({items: [{label: 'Ежеденевно', value: 'daily'},{label: 'Еженедельно', value: 'weekly'},{label: 'Ежемесячно', value: 'monthly'},{label: 'Ежегодно', value: 'yearly'}]})
@@ -142,20 +117,16 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         return textMetrics.width;
     }
 
-    const parentWidth = `calc(${stringWidth(parentId.length > 0 ? allTasks?.filter(task => task._id === parentId[0])?.[0]?.title : 'Родитель', "0.75rem 'Inter'")}px${parentId.length > 0 ? ' + 0.875rem' : ''}`;
+    const parentWidth = `calc(${stringWidth(parentId.length > 0 ? projects?.filter(task => task._id === parentId[0])?.[0]?.title : 'Родитель', "0.75rem 'Inter'")}px${parentId.length > 0 ? ' + 0.875rem' : ''}`;
     const tabWidth = `calc(${stringWidth(tabsCollection.items.find(item => item.value === tab[0])?.label || '', "bold 0.875rem 'Inter'")}px`;
 
     async function deleteTask(taskId: string) {
         const data = await request(`/api/task/${taskId}`, 'DELETE', null, { Authorization: `Bearer ${auth.token}` });
-        console.log(data.task);
         toaster.create({
             description: data.message,
             type: data.error ? 'error' : 'success',
             duration: 5000,
-            action: {
-                label: "Отменить",
-                onClick: async () => {await request('/api/task/create', 'POST', task, { Authorization: `Bearer ${auth.token}` }); updateTasks(true)},
-              }
+            action: { label: "Отменить", onClick: async () => {await request('/api/task/create', 'POST', task, { Authorization: `Bearer ${auth.token}` }); updateTasks(true)} }
         })
         props.onOpenChange?.({ open: false })
         updateTasks(true)
@@ -234,7 +205,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                         </Box>
                         <Box display='flex'>
                             {/* Мероприятие */}
-                            {tab !== 'h' && <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' mr={2} onClick={() => setIsEvent(!isEvent)} px={2} color={isEvent ? '#e0e0e0' : '#52525b'} boxShadowColor={isEvent ? '#e4e4e7' : '#52525b'}>{isEvent ? <BsCalendarCheck /> : <BsCalendarX />}</Badge>}
+                            {!['h', 'p'].includes(tab) && <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' mr={2} onClick={() => setIsEvent(!isEvent)} px={2} color={isEvent ? '#e0e0e0' : '#52525b'} boxShadowColor={isEvent ? '#e4e4e7' : '#52525b'}>{isEvent ? <BsCalendarCheck /> : <BsCalendarX />}</Badge>}
                             {/* Родитель (для всех, кроме привычек)*/}
                             { tab !== 'h' && (
                                 <Combobox.Root variant='subtle' collection={collection} openOnClick value={parentId} onValueChange={(e) => setParentId(e.value)} onInputValueChange={(e) => filter(e.inputValue)} 
@@ -298,7 +269,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             {/* Интервал повторений (для повторяющихся задач)*/}
                             { tab === 'r' && (
                                 <Popover.Root lazyMount unmountOnExit>
-                                    <Popover.Trigger fontSize='xs' color='#e0e0e0' mr={2} asChild>
+                                    <Popover.Trigger fontSize='xs' mr={2} asChild>
                                         <Badge h={8} variant="outline" colorPalette="grey" rounded='md' color={recStartDate && recEndDate  ? '#e0e0e0' : '#52525b'} boxShadowColor={recStartDate && recEndDate ? '#e4e4e7' : '#52525b'}><BsCalendar3Range />{formatRecurrencePeriod({ recurrence: { startDate: recStartDate, endDate: recEndDate } }) || 'Интервал'}</Badge>
                                     </Popover.Trigger>
                                     <Popover.Positioner>
@@ -326,9 +297,9 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                                         <Popover.Body p={3}>
                                             <div className="input-fields3 flex items-center">
                                                 {tab !== 'h' && (<>
-                                                    <Box w={24}>
+                                                    <Box w={28}>
                                                         <Input required={(isEvent && dateStart === undefined) || (timeStart !== undefined && dateStart === undefined)}
-                                                            id="taskDateStart" variant="flushed" type="date" value={dateStart} min="2002-11-22" max={dateEnd} width='6rem' color='#e0e0e0'
+                                                            id="taskDateStart" variant="flushed" type="date" value={dateStart} min="2002-11-22" max={dateEnd} width='7rem' color='#e0e0e0'
                                                             onChange={(e) => setDateStart(e.target.value)}
                                                         />
                                                         <Input required={isEvent && timeStart === undefined} id="taskTimeStart" color='#e0e0e0'
@@ -338,10 +309,10 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                                                     </Box>
                                                     <p className='mx-3'>➜</p>
                                                 </>)}
-                                                <Box w={24}>
+                                                <Box w={28}>
                                                     <Input required={dateEnd === 'Invalid Date'} id="taskDateEnd" color='#e0e0e0'
                                                         variant="flushed" type="date" value={dateEnd}
-                                                        min={dateStart === undefined ? '2002-11-22' : dateStart} max="2099-12-31" width='6rem'
+                                                        min={dateStart === undefined ? '2002-11-22' : dateStart} max="2099-12-31" width='7rem'
                                                         onChange={(e) => setDateEnd(e.target.value)}
                                                     />
                                                     {tab !== 'h' && (<Input required={isEvent && timeEnd === undefined} id="taskTimeEnd" colorPalette='gray'
@@ -361,8 +332,8 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                             <Textarea autoresize maxH="13lh" scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616' value={desc} onChange={(e) => setDesc(e.target.value)} placeholder={'Описание ' + (isEvent ? 'мероприятия' : 'задачи')} />
                         </>)}
                         {/* Подзадачи (для всех, кроме привычек)*/}
-                        { tab !== 'h' && (
-                            subTasks.map((subTask, index) => (
+                        { !['h', 'p'].includes(tab) && (<>
+                            {subTasks.map((subTask, index) => (
                                 <div key={subTask._id} className="subTask pl-6">
                                     <Input required={subTask.name.length === 0} variant="flushed" colorPalette='gray' value={subTask.name} color='#e0e0e0' mr={3} w='calc(100% - 6.5rem)'
                                         onChange={(e) => setSubTasks(subTasks.map((t) => t._id === subTask._id ? { ...t, name: e.target.value } : t))}/>
@@ -372,9 +343,9 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                                     </IconButton>)}
                                     <IconButton ml={3} variant="ghost" colorPalette='gray' fontSize='2xl' color='#4e4e4e' onClick={() => setSubTasks( subTasks.filter((t) => t._id !== subTask._id))}><FaXmark /></IconButton>
                                 </div>
-                            ))
-                        )}
-                        { tab !== 'h' && (<Button color='#4e4e4e' ml={6} variant="ghost" colorPalette='gray' size="sm" justifyContent='flex-start' onClick={newSubTask}><FaPlus />Добавить подзадачу</Button>)}
+                            ))}
+                            <Button color='#4e4e4e' ml={6} variant="ghost" colorPalette='gray' size="sm" justifyContent='flex-start' onClick={newSubTask}><FaPlus />Добавить подзадачу</Button>
+                        </>)}
                     </Dialog.Body>
                 </Dialog.Content>
             </Dialog.Positioner>

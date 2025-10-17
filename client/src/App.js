@@ -41,6 +41,7 @@ function App() {
                             <Router>
                                 <Theme appearance="dark" colorPalette="gray">
                                     {isAuthenticated && <SideBar />}
+                                    {console.log(token, login, logout, userId, isAuthenticated)}
                                     <MainContent>{routes}</MainContent>
                                     <Toaster />
                                     <CreateTask.Viewport />
