@@ -2,7 +2,7 @@ import React, { useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { FaHouse, FaRightFromBracket } from 'react-icons/fa6';
-import { BsGraphUp, BsRepeat, BsListCheck, BsPatchCheckFill, BsArchiveFill } from 'react-icons/bs';
+import { BsGraphUp, BsRepeat, BsListCheck, BsPatchCheckFill, BsArchiveFill, BsClipboard2DataFill } from 'react-icons/bs';
 import { Button } from '@chakra-ui/react';
 import { epicToIcon, epicToColor } from '../methods';
 import { EpicsContext } from '../App';
@@ -24,7 +24,7 @@ export const SideBar = () => {
         setEpics(epicsCopy);
     };
 
-    const pages= [{i: BsGraphUp, t: 'Дашборд', n: '/dashboard'}, {i: BsRepeat, t: 'Шаблоны', n: '/templates'}, { i: BsListCheck, t: 'Задачи', n: '/tasks'}, { i: BsPatchCheckFill, t: 'Привычки', n: '/habits'}, {i: BsArchiveFill, t: 'Архив', n: '/archive'}];
+    const pages= [{i: BsGraphUp, t: 'Дашборд', n: '/dashboard'}, {i: BsRepeat, t: 'Шаблоны', n: '/templates'}, { i: BsListCheck, t: 'Задачи', n: '/tasks'}, { i: BsPatchCheckFill, t: 'Привычки', n: '/habits'}, {i: BsArchiveFill, t: 'Архив', n: '/archive'}, {i:BsClipboard2DataFill, t: 'Проекты', n: '/projects'}];
 
     return (
         <div ref={sidebarRef} className={`fixed m-4 h-[calc(100dvh-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 w-12`} id="sideBar">

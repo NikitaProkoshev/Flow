@@ -7,14 +7,29 @@ const shortId = require('shortid');
 
 function normalizeStartOfDay(date) {
     const d = new Date(date);
-    d.setHours(0,0,0,0);
+    // Устанавливаем время в UTC, чтобы избежать проблем с временными зонами
+    d.setUTCHours(0,0,0,0);
     return d;
 }
 
-function addDays(date, days) { const d = new Date(date); d.setDate(d.getDate() + days); return d; }
-function addWeeks(date, weeks) { return addDays(date, weeks * 7); }
-function addMonths(date, months) { const d = new Date(date); d.setMonth(d.getMonth() + months); return d; }
-function addYears(date, years) { const d = new Date(date); d.setFullYear(d.getFullYear() + years); return d; }
+function addDays(date, days) { 
+    const d = new Date(date); 
+    d.setUTCDate(d.getUTCDate() + days); 
+    return d; 
+}
+function addWeeks(date, weeks) { 
+    return addDays(date, weeks * 7); 
+}
+function addMonths(date, months) { 
+    const d = new Date(date); 
+    d.setUTCMonth(d.getUTCMonth() + months); 
+    return d; 
+}
+function addYears(date, years) { 
+    const d = new Date(date); 
+    d.setUTCFullYear(d.getUTCFullYear() + years); 
+    return d; 
+}
 
 function* iterateOccurrences(recurrence, from, to) {
     if (!recurrence || !recurrence.frequency) return;
@@ -24,21 +39,26 @@ function* iterateOccurrences(recurrence, from, to) {
     const windowStart = new Date(from);
     const windowEnd = new Date(to);
 
-    let cursor = new Date(seriesStart);
+    // Нормализуем все даты к началу дня в UTC
+    let cursor = normalizeStartOfDay(seriesStart);
+    const normalizedWindowStart = normalizeStartOfDay(windowStart);
+    const normalizedWindowEnd = normalizeStartOfDay(windowEnd);
+    const normalizedSeriesEnd = seriesEnd ? normalizeStartOfDay(seriesEnd) : null;
+
     if (recurrence.frequency === 'daily') {
-        const diffDays = Math.floor((windowStart - cursor) / (24*3600*1000));
+        const diffDays = Math.floor((normalizedWindowStart - cursor) / (24*3600*1000));
         if (diffDays > 0) cursor = addDays(cursor, Math.floor(diffDays / interval) * interval);
     } else if (recurrence.frequency === 'weekly') {
-        const diffDays = Math.floor((windowStart - cursor) / (24*3600*1000));
+        const diffDays = Math.floor((normalizedWindowStart - cursor) / (24*3600*1000));
         if (diffDays > 0) cursor = addWeeks(cursor, Math.floor(diffDays / (interval*7)) * interval);
     } else if (recurrence.frequency === 'monthly') {
-        while (cursor < windowStart) cursor = addMonths(cursor, interval);
+        while (cursor < normalizedWindowStart) cursor = addMonths(cursor, interval);
     } else if (recurrence.frequency === 'yearly') {
-        while (cursor < windowStart) cursor = addYears(cursor, interval);
+        while (cursor < normalizedWindowStart) cursor = addYears(cursor, interval);
     }
 
-    while (cursor <= windowEnd && (!seriesEnd || cursor <= seriesEnd)) {
-        if (cursor >= windowStart && cursor <= windowEnd) yield normalizeStartOfDay(cursor);
+    while (cursor <= normalizedWindowEnd && (!normalizedSeriesEnd || cursor <= normalizedSeriesEnd)) {
+        if (cursor >= normalizedWindowStart && cursor <= normalizedWindowEnd) yield cursor;
         if (recurrence.frequency === 'daily') cursor = addDays(cursor, interval);
         else if (recurrence.frequency === 'weekly') cursor = addWeeks(cursor, interval);
         else if (recurrence.frequency === 'monthly') cursor = addMonths(cursor, interval);
@@ -49,7 +69,7 @@ function* iterateOccurrences(recurrence, from, to) {
 
 router.post('/create', auth, async (req, res) => {
     try {
-        const {epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower} = req.body;
+        const {epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, isProject} = req.body;
         const subTasks = Array.isArray(req.body.subTasks) ? req.body.subTasks : [];
         const recurrence = req.body.recurrence || undefined;
         const isTemplate = !!req.body.isTemplate;
@@ -69,7 +89,7 @@ router.post('/create', auth, async (req, res) => {
             if (recurrence.endDate) out.endDate = recurrence.endDate;
             return out;
         })() : undefined;
-        const task = new Task({ code, epic, parentId, parentsTitles, status, title, description, isEvent,
+        const task = new Task({ code, epic, parentId, parentsTitles, status, title, description, isEvent, isProject,
             dateStart: dateStart ? new Date(dateStart) : undefined,
             dateEnd: dateEnd ? new Date(dateEnd) : undefined,
             eisenhower,
@@ -84,7 +104,7 @@ router.post('/create', auth, async (req, res) => {
 
 router.put('/update/:id', async (req, res) => {
     try {
-        const {_id, epic, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence} = req.body;
+        const {_id, epic, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject} = req.body;
         const parentId = req.body.parentId?.[0];
         const existing = await Task.findById(_id);
         if (!existing) return res.status(404).json({ error: 'Задача не найдена' });
@@ -99,7 +119,7 @@ router.put('/update/:id', async (req, res) => {
         // }
 
         // По умолчанию: обновляем сам документ (экземпляр или шаблон)
-        const task = await Task.findByIdAndUpdate( _id, { epic, parentId, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence }, { new: true } );
+        const task = await Task.findByIdAndUpdate( _id, { epic, parentId, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject }, { new: true } );
 
         res.status(201).json({ task, error: undefined })
     } catch (err) { res.status(500).json({ error: err.message }) }
@@ -109,23 +129,23 @@ router.put('/check/:id', async (req, res) => {
     try {
         const {_id, status, subTasks} = req.body;
         const checkingTask = await Task.findOne({ _id });
-        const  { epic, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower } = checkingTask;
+        const  { epic, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, isProject } = checkingTask;
         const parentId = checkingTask.parentId?.[0];
 
-        const checkedTask = new Task({ _id, epic, parentId, parentsTitles, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
+        const checkedTask = new Task({ _id, epic, parentId, parentsTitles, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, isProject });
         await Task.findByIdAndUpdate( _id, { $set: checkedTask }, { new: true } );
         res.status(201).json({ checkedTask })
     } catch (err) { res.status(500).json({ error: err.message }) }
 });
 
-router.put('/habits/:id', async (req, res) => {
-    try {
-        const {_id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
-        const updatedTask = new Task({ _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
-        const task = await Task.findByIdAndUpdate( _id, { $set: updatedTask }, { new: true } );
-        res.status(201).json({ task })
-    } catch (err) { res.status(500).json({ error: err.message }) }
-});
+// router.put('/habits/:id', async (req, res) => {
+//     try {
+//         const {_id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
+//         const updatedTask = new Task({ _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
+//         const task = await Task.findByIdAndUpdate( _id, { $set: updatedTask }, { new: true } );
+//         res.status(201).json({ task })
+//     } catch (err) { res.status(500).json({ error: err.message }) }
+// });
 
 router.get('/', auth, async (req, res) => {
     try {
@@ -156,8 +176,19 @@ router.get('/', auth, async (req, res) => {
             const baseEnd = tpl.dateEnd || tplStart;
             for (const occ of iterateOccurrences(tpl.recurrence, (tpl.epic === 'Привычки' ? today : periodStart), (tpl.epic === 'Привычки' ? tomorrow : periodEnd))) {
                 const deltaMs = (new Date(baseEnd).getTime()) - (new Date(baseStart).getTime());
-                const instStart = tpl.dateStart ? new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), new Date(baseStart).getHours(), new Date(baseStart).getMinutes(), 0, 0) : occ;
-                const instEnd = tpl.dateStart ? new Date(instStart.getTime() + deltaMs) : occ;
+                
+                let instStart, instEnd;
+                if (tpl.dateStart) {
+                    // Если есть время начала, создаем дату с учетом времени из базовой задачи
+                    const baseStartDate = new Date(baseStart);
+                    instStart = new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), 
+                                       baseStartDate.getHours(), baseStartDate.getMinutes(), 0, 0);
+                    instEnd = new Date(instStart.getTime() + deltaMs);
+                } else {
+                    // Если нет времени начала, используем только дату
+                    instStart = new Date(occ);
+                    instEnd = new Date(occ);
+                }
                 tasks.push({
                     owner: req.user.userId,
                     epic: tpl.epic,
@@ -182,19 +213,19 @@ router.get('/', auth, async (req, res) => {
     } catch(e) { res.status(500).json({message: 'При загрузке задач на сервере возникла ошибка (Error: Разраб еблан...)'}) }
 });
 
-router.get('/:id', auth, async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id) // ???
-        res.json(task);
-    } catch(e) { res.status(500).json({message: 'Что-то пошло не так! Попробуйте сноваюfff'}) }
-});
+// router.get('/:id', auth, async (req, res) => {
+//     try {
+//         const task = await Task.findById(req.params.id) // ???
+//         res.json(task);
+//     } catch(e) { res.status(500).json({message: 'Что-то пошло не так! Попробуйте сноваюfff'}) }
+// });
 
-router.delete('/:id', auth, async (req, res) => {
-    try {
-        const task = await Task.findById(req.params.id);
-        await Task.findByIdAndDelete(req.params.id);
-        res.json({ task, message: 'Задача удалена' });
-    } catch (e) { res.status(500).json({ message: 'Ошибка при удалении задачи' }) }
-});
+// router.delete('/:id', auth, async (req, res) => {
+//     try {
+//         const task = await Task.findById(req.params.id);
+//         await Task.findByIdAndDelete(req.params.id);
+//         res.json({ task, message: 'Задача удалена' });
+//     } catch (e) { res.status(500).json({ message: 'Ошибка при удалении задачи' }) }
+// });
 
 module.exports = router;

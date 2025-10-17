@@ -4,10 +4,7 @@ import { formatRecurrenceFrequency } from "../methods";
 import { FaRepeat } from "react-icons/fa6";
 
 export const HabitsPage = () => {
-    const { allTasks } = useTasks();
-
-    var tasksCopy = JSON.parse(JSON.stringify(allTasks));
-    const habitsTemplates = tasksCopy.filter(task => task.epic === 'Привычки' && task.isTemplate);
+    const { habitsTemplates } = useTasks();
 
     return (<div className='m-4'>
         <h2 className="gradient-font text-3xl">Привычки</h2>

@@ -1,34 +1,25 @@
 import React, { useContext, useState } from 'react';
 import { EpicsContext } from '../App';
 import { TasksList } from '../components/TasksList';
-import { dateToString, epicToIcon } from '../methods';
+import { epicToIcon } from '../methods';
 import { Habits } from '../components/Habits';
 import { Box, Tabs } from '@chakra-ui/react';
 import { useTasks } from '../context/TasksContext';
 
 export const TasksPage = () => {
-    const { allTasks } = useTasks();
-    var habits, events, tasksA, tasksB, tasksC, tasksD;
+    const { habits, events, tasks } = useTasks();
     const [ epics ] = useContext(EpicsContext);
     const [tab, setTab] = useState("today");
 
-    const yesterday = new Date(), today = new Date(), week = new Date(), month = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    week.setDate(week.getDate() - 7);
-    month.setMonth(month.getMonth() - 1);
-
-    var tasksCopy = JSON.parse(JSON.stringify(allTasks));
-    habits = tasksCopy.filter(task => task.epic === 'Привычки' && task.templateId && [dateToString(today), dateToString(yesterday)].includes(task.instanceDate.slice(0, 10)));
-    tasksCopy = tasksCopy.filter(task => task.epic !== 'Привычки' && epics.includes(task.epic) && !task.status);
-    events = tasksCopy.filter(task => task.isEvent);
-    tasksCopy = tasksCopy.filter(task => !task.isEvent);
-    tasksA = tasksCopy.filter(task =>  task.eisenhower === 'A')
+    var tasksCopy = JSON.parse(JSON.stringify(tasks));
+    tasksCopy = tasksCopy.filter(task => epics.includes(task.epic));
+    const tasksA = tasksCopy.filter(task =>  task.eisenhower === 'A')
     tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'A')
-    tasksB = tasksCopy.filter(task =>  task.eisenhower === 'B')
+    const tasksB = tasksCopy.filter(task =>  task.eisenhower === 'B')
     tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'B')
-    tasksC = tasksCopy.filter(task =>  task.eisenhower === 'C')
+    const tasksC = tasksCopy.filter(task =>  task.eisenhower === 'C')
     tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'C')
-    tasksD = tasksCopy.filter(task =>  task.eisenhower === 'D')
+    const tasksD = tasksCopy.filter(task =>  task.eisenhower === 'D')
     tasksCopy = tasksCopy.filter(task => task.eisenhower !== 'D')
 
 

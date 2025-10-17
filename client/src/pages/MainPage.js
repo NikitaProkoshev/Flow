@@ -15,22 +15,20 @@ import { CreateTask } from '../components/CreateTask.tsx';
 export const MainPage = () => {
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
-    const { allTasks, updatingTasks } = useTasks();
+    const { tasks, updateTasks, habits, events } = useTasks();
     const [isTodayVisible, setIsTodayVisible] = useState(true);
     const [ epics ] = useContext(EpicsContext);
     const calendarRef = useRef(null);
 
-    const today = new Date(), yesterday = new Date(), week = new Date(), month = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    const today = new Date(), week = new Date(), month = new Date();
     week.setDate(week.getDate() + 7);
     month.setDate(month.getMonth() + 1);
 
     const datesSet = useCallback((dateInfo) => {setIsTodayVisible(today >=  dateInfo.view.activeStart && today < dateInfo.view.activeEnd)}, [today]);
 
     function eventsToCalendar(events) {
-        console.log(events);
-        const some = events && events.map((event) => ({
-            id: event._id,
+        return events && events.map((event) => ({
+            id: event._id || event.parentId+'_'+event.dateEnd,
             title: event.title,
             start: event.dateStart,
             end: event.dateEnd,
@@ -39,8 +37,6 @@ export const MainPage = () => {
             status: event.status,
             allDay: ['00:00', '21:00'].includes(event.dateStart.slice(11,16)) && ['00:00', '20:59'].includes(event.dateEnd.slice(11,16))
         }))
-        console.log(some);
-        return some;
     }
 
     const sortFunc = (a, b) => {
@@ -48,11 +44,8 @@ export const MainPage = () => {
         return typeOrder[a.eisenhower] - typeOrder[b.eisenhower] || new Date(a.dateEnd) - new Date(b.dateEnd);
     };
     
-    var tasksCopy = JSON.parse(JSON.stringify(allTasks));
-    const habits = tasksCopy.filter(task => task.epic === 'Привычки' && task.templateId && [dateToString(today), dateToString(yesterday)].includes(task.instanceDate.slice(0, 10)));
-    tasksCopy = tasksCopy.filter(task => task.epic !== 'Привычки' && epics.includes(task.epic));
-    const events = tasksCopy.filter(task => task.isEvent);
-    tasksCopy = tasksCopy.filter(task => !task.isEvent && !task.status);
+    var tasksCopy = JSON.parse(JSON.stringify(tasks));
+    tasksCopy = tasksCopy.filter(task => (!task.isEvent && !task.status) || (task.epic !== 'Привычки' && epics.includes(task.epic) && !task.isTemplate && !task.isProject));
     const todayTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(today) || dateToString(task.dateEnd) <= dateToString(today))
     tasksCopy = tasksCopy.filter(task => !(dateToString(task.dateStart) <= dateToString(today) || dateToString(task.dateEnd) <= dateToString(today)))
     const weekTasks = tasksCopy.filter(task => dateToString(task.dateStart) <= dateToString(week) || dateToString(task.dateEnd) <= dateToString(week))
@@ -87,7 +80,10 @@ export const MainPage = () => {
                 views={{ fourDay: { type: 'timeGrid', duration: { days: 4 }, buttonText: '4 days' } }}
                 eventContent={arg => (
                     <Box display='flex' flexDirection='row' alignItems='center' h='full' p={1} color='#e0e0e0' filter={arg.event.extendedProps.status ? 'grayscale(1)' : 'none'}>
-                        <Checkbox.Root onChange={() => checkingSome(allTasks.filter(task => arg.event.title === task.title)[0], request, token, updatingTasks)} checked={arg.event.extendedProps.status} variant='subtle' colorPalette='gray'>
+                        {console.log(arg.event)}
+                        {console.log(eventsToCalendar(events))}
+                        {console.log(datesSet)}
+                        <Checkbox.Root onChange={() => checkingSome(tasks.filter(task => arg.event.title === task.title)[0], request, token, updateTasks)} checked={arg.event.extendedProps.status} variant='subtle' colorPalette='gray'>
                             <Checkbox.HiddenInput />
                             <Checkbox.Control />
                         </Checkbox.Root>

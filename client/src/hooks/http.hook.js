@@ -1,7 +1,9 @@
-import {useState, useCallback} from 'react';
+import {useState, useCallback, useContext} from 'react';
 import { toaster } from '../components/ui/toaster';
+import { AuthContext } from '../context/AuthContext';
 
 export const useHttp = () => {
+    const { logout } = useContext(AuthContext);
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
     const request = useCallback(async (url, method = 'GET', body = null, headers={}) => {
@@ -19,6 +21,7 @@ export const useHttp = () => {
             setLoading(false)
             return data
         } catch (e) {
+            if (e.message === 'Нет авторизации') logout();
             toaster.create({ description: e.message , type: 'error' })
             setLoading(false)
             setError(e.message)

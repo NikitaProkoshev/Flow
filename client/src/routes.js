@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { TemplatesPage } from './pages/TemplatesPage';
 import { HabitsPage } from './pages/HabitsPage';
 import { ArchivePage } from './pages/ArchivePage';
+import { ProjectsPage } from './pages/ProjectsPage';
 
 export const useRoutes = (isAuthenticated) => {
     if (isAuthenticated) {
@@ -17,6 +18,7 @@ export const useRoutes = (isAuthenticated) => {
             <Route path="/tasks" exact element={<TasksPage />} />
             <Route path="/habits" exact element={<HabitsPage />} />
             <Route path="/archive" exact element={<ArchivePage />} />
+            <Route path="/projects" exact element={<ProjectsPage />} />
             <Route path="*" exact element={<Navigate to="/" />} />
         </Routes>);
     }

@@ -7,7 +7,8 @@ const schema = new Schema({
     status: {type: Boolean}, // Статус задачи (True=Выполнено, False=НЕ Выполнено)
     title: {type: String, required: true}, // Название задачи
     description: {type: String}, // Описание задачи
-    isEvent: {type: Boolean}, // Тип задачи (True=Задача, False=Мероприятие)
+    isEvent: {type: Boolean}, // Тип задачи (True=Мероприятие, False=Задача)
+    isProject: {type: Boolean}, // Тип задачи (True=Проект, False=Задача)
     dateStart: {type: Date}, // Время начала задачи/мероприятия
     dateEnd: {type: Date}, // Дедлайн выполнения задачи/время конца мероприятия
     createDate: {type: Date, default: Date.now}, // Время и дата, когда создана задача

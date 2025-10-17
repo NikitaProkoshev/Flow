@@ -9,7 +9,7 @@ import { TasksListSkeleton } from './TasksListSkeleton';
 import { useTasks } from '../context/TasksContext';
 
 export const TasksList = ({ tasks, eisenhower = true }) => {
-    const { allTasks, loading, updateTasks } = useTasks();
+    const { projects, loading, updateTasks } = useTasks();
     const { request } = useHttp();
     const { token } = useContext(AuthContext);
 
@@ -28,7 +28,7 @@ export const TasksList = ({ tasks, eisenhower = true }) => {
     function getParentsTitles(parentId) {
         const parentsTitles = [];
         while (parentId) {
-            const parentTask = allTasks.filter(task => task._id === parentId)[0];
+            const parentTask = projects.filter(task => task._id === parentId)[0];
             parentsTitles.push(parentTask.title);
             parentId = parentTask.parentId;
         }
@@ -46,7 +46,7 @@ export const TasksList = ({ tasks, eisenhower = true }) => {
                         <div className="flex flex-col items-start w-[calc(100%-3rem)] mx-2 my-4" onClick={() => { CreateTask.open('a', { task: task }) }}>
                             <div className="flex flex-row items-center h-auto break-all">
                                 {['МегаФон','РУДН','ФК_Краснодар','Flow'].includes(task.epic) ? <img className="size-6" src={`..\\img\\${epicToIcon[task.epic]}.png`} alt={task.epic} /> : epicToIcon[task.epic]}
-                                {task.parentsTitles && <Badge h={6} ml={3} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{getParentsTitles(task.parentId)}</Badge>}
+                                {task.parentId && <Badge h={6} ml={3} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{getParentsTitles(task.parentId)}</Badge>}
                                 <h3 className="text-xl ml-3 text-[#e0e0e0]">{task.title}</h3>
                             </div>
                             <div className="flex flex-row items-center h-auto break-all mt-3 w-full text-md">
