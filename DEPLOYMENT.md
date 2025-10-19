@@ -137,6 +137,18 @@ git pull origin main
 
 ## 🛠️ Устранение неполадок
 
+### Отображается дефолтная страница nginx
+```bash
+# Быстрое исправление
+chmod +x fix-nginx.sh
+./fix-nginx.sh
+
+# Или вручную:
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/flow /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
 ### Приложение не запускается
 ```bash
 # Проверяем логи
@@ -144,6 +156,9 @@ pm2 logs flow-app
 
 # Проверяем статус
 pm2 status
+
+# Перезапускаем
+pm2 restart flow-app
 ```
 
 ### Nginx ошибки
@@ -153,6 +168,9 @@ sudo nginx -t
 
 # Проверяем логи
 sudo tail -f /var/log/nginx/error.log
+
+# Проверяем статус
+sudo systemctl status nginx
 ```
 
 ### SSL проблемы
