@@ -34,6 +34,21 @@ cd ..
 echo -e "${YELLOW}📁 Копируем файлы...${NC}"
 sudo mkdir -p /var/www/flow
 sudo cp -r client/build/* /var/www/flow/
+
+# Убеждаемся, что PWA файлы скопированы
+echo -e "${YELLOW}📱 Проверяем PWA файлы...${NC}"
+if [ -f "/var/www/flow/manifest.json" ]; then
+    echo -e "${GREEN}✅ manifest.json найден${NC}"
+else
+    echo -e "${RED}❌ manifest.json не найден${NC}"
+fi
+
+if [ -f "/var/www/flow/sw.js" ]; then
+    echo -e "${GREEN}✅ sw.js найден${NC}"
+else
+    echo -e "${RED}❌ sw.js не найден${NC}"
+fi
+
 sudo chown -R www-data:www-data /var/www/flow
 
 # Копируем конфигурацию nginx
