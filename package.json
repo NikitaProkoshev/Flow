@@ -9,7 +9,14 @@
     "client": "npm run start --prefix client",
     "client:install": "npm install --prefix client",
     "client:build": "npm run build --prefix client",
-    "dev": "cross-env NODE_ENV=development concurrently \"npm run server\" \"npm run client\""
+    "dev": "cross-env NODE_ENV=development concurrently \"npm run server\" \"npm run client\"",
+    "deploy": "./deploy.sh",
+    "setup-ssl": "./setup-ssl.sh",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop flow-app",
+    "pm2:restart": "pm2 restart flow-app",
+    "pm2:logs": "pm2 logs flow-app",
+    "pm2:monit": "pm2 monit"
   },
   "keywords": [
     "MERN",

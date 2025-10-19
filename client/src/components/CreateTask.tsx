@@ -70,6 +70,8 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         if (editing && task.eisenhower !== undefined) setEditing(false);
     }, [setRequired]);
 
+    console.log("AAAAAAAAAAA");
+
     const saveChanges = async () => {
         try {
             if (required === 0) {
