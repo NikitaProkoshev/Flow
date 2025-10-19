@@ -28,6 +28,27 @@ const schema = new Schema({
         startDate: { type: Date }, // старт повторения (обычно = dateEnd или dateStart)
         endDate: { type: Date }, // дата окончания серии (опционально)
     },
+    doneInstances: [{ type: String }], // даты выполненных экземпляров
+    changedInstances: { 
+        type: Map, 
+        of: {
+            subTasks: [{
+                name: { type: String },
+                status: { type: Boolean },
+                _id: { type: Types.ObjectId }
+            }],
+            title: { type: String },
+            description: { type: String },
+            eisenhower: { type: String },
+            epic: { type: String },
+            parentId: { type: Types.ObjectId, ref: "task" },
+            dateStart: { type: Date },
+            dateEnd: { type: Date },
+            isEvent: { type: Boolean }
+        },
+        default: new Map()
+    },
+    canceledInstances: [{ type: String }],
 })
 
 module.exports = model('task', schema)

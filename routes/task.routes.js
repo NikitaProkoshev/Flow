@@ -69,11 +69,10 @@ function* iterateOccurrences(recurrence, from, to) {
 
 router.post('/create', auth, async (req, res) => {
     try {
-        const {epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, isProject} = req.body;
+        const {epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, isProject, parentId} = req.body;
         const subTasks = Array.isArray(req.body.subTasks) ? req.body.subTasks : [];
         const recurrence = req.body.recurrence || undefined;
         const isTemplate = !!req.body.isTemplate;
-        const parentId = req.body.parentId?.[0];
         const code = shortId.generate();
 
         const cleanSubTasks = subTasks.filter(st => st && typeof st.name === 'string' && st.name.trim().length > 0).map(subtask => {return { name: subtask.name, status: !!subtask.status }})
@@ -104,10 +103,11 @@ router.post('/create', auth, async (req, res) => {
 
 router.put('/update/:id', async (req, res) => {
     try {
-        const {_id, epic, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject} = req.body;
-        const parentId = req.body.parentId?.[0];
+        const {_id, epic, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject, parentId} = req.body;
         const existing = await Task.findById(_id);
         if (!existing) return res.status(404).json({ error: 'Задача не найдена' });
+
+        subTasks?.forEach(obj => delete obj._id);
 
         // // Определяем цель обновления: экземпляр или серия
         // if (editScope === 'series' && existing.templateId) {
@@ -128,43 +128,31 @@ router.put('/update/:id', async (req, res) => {
 router.put('/check/:id', async (req, res) => {
     try {
         const {_id, status, subTasks} = req.body;
-        const checkingTask = await Task.findOne({ _id });
-        const  { epic, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, isProject } = checkingTask;
-        const parentId = checkingTask.parentId?.[0];
-
-        const checkedTask = new Task({ _id, epic, parentId, parentsTitles, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, isProject });
-        await Task.findByIdAndUpdate( _id, { $set: checkedTask }, { new: true } );
-        res.status(201).json({ checkedTask })
+        console.log(_id, status, subTasks);
+        if (typeof status === 'boolean') {await Task.findByIdAndUpdate( _id, { status: status })}
+        else if (subTasks) {await Task.findByIdAndUpdate( _id, {subTasks: subTasks})}
+        else {
+            const checkingTask = await Task.findOne({ _id: _id.slice(0, _id.length - 11) })
+            const { doneInstances: dones } = checkingTask;
+            const newDoneInstances = (dones.filter(inst => inst === _id.slice(_id.length - 10))?.[0] ? dones.filter(inst => inst !== _id.slice(_id.length - 10)) : [...dones, _id.slice(_id.length - 10)]);
+            await Task.findByIdAndUpdate( _id.slice(0, _id.length - 11), { doneInstances: newDoneInstances });
+        }
+        res.status(201).json({})
     } catch (err) { res.status(500).json({ error: err.message }) }
-});
-
-// router.put('/habits/:id', async (req, res) => {
-//     try {
-//         const {_id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks} = req.body;
-//         const updatedTask = new Task({ _id, epic, status, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks });
-//         const task = await Task.findByIdAndUpdate( _id, { $set: updatedTask }, { new: true } );
-//         res.status(201).json({ task })
-//     } catch (err) { res.status(500).json({ error: err.message }) }
-// });
+})
 
 router.get('/', auth, async (req, res) => {
     try {
-        const today = new Date(), tomorrow = new Date(), month = new Date();
+        const today = new Date(), tomorrow = new Date(), month = new Date(), minusMonth = new Date();
         today.setUTCHours(0, 0, 0, 0);
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setUTCHours(0, 0, 0, 0);
         month.setMonth(month.getMonth() + 1);
         month.setUTCHours(23, 59, 59, 999);
+        minusMonth.setMonth(minusMonth.getMonth() - 1);
+        minusMonth.setUTCHours(0, 0, 0, 0);
         const periodEnd = month;
-        const periodStart = today;
-
-        var habits = await Task.find({ owner: req.user.userId, epic: 'Привычки' });
-        for (const hab of habits) {
-            if (hab.title.startsWith('Привычки_')) {
-                console.log(hab.title, hab._id);
-                await Task.findByIdAndDelete(hab._id);
-            }
-        }
+        const periodStart = minusMonth;
 
         var tasks = await Task.find({ owner: req.user.userId });
 
@@ -181,20 +169,21 @@ router.get('/', auth, async (req, res) => {
                 if (tpl.dateStart) {
                     // Если есть время начала, создаем дату с учетом времени из базовой задачи
                     const baseStartDate = new Date(baseStart);
-                    instStart = new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), 
-                                       baseStartDate.getHours(), baseStartDate.getMinutes(), 0, 0);
+                    instStart = new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), baseStartDate.getHours(), baseStartDate.getMinutes(), 0, 0);
                     instEnd = new Date(instStart.getTime() + deltaMs);
                 } else {
                     // Если нет времени начала, используем только дату
                     instStart = new Date(occ);
                     instEnd = new Date(occ);
                 }
+                
                 tasks.push({
+                    _id: `${tpl._id}_${occ.getFullYear()}-${occ.getMonth()+1}-${occ.getDate()}`,
                     owner: req.user.userId,
                     epic: tpl.epic,
                     parentId: tpl.parentId,
                     parentsTitles: tpl.parentsTitles,
-                    status: false,
+                    status: !!tpl.doneInstances.filter(instance => instance === `${occ.getFullYear()}-${occ.getMonth()+1}-${occ.getDate()}`)?.[0],
                     title: tpl.title,
                     description: tpl.description,
                     isEvent: tpl.isEvent,
@@ -213,19 +202,12 @@ router.get('/', auth, async (req, res) => {
     } catch(e) { res.status(500).json({message: 'При загрузке задач на сервере возникла ошибка (Error: Разраб еблан...)'}) }
 });
 
-// router.get('/:id', auth, async (req, res) => {
-//     try {
-//         const task = await Task.findById(req.params.id) // ???
-//         res.json(task);
-//     } catch(e) { res.status(500).json({message: 'Что-то пошло не так! Попробуйте сноваюfff'}) }
-// });
-
-// router.delete('/:id', auth, async (req, res) => {
-//     try {
-//         const task = await Task.findById(req.params.id);
-//         await Task.findByIdAndDelete(req.params.id);
-//         res.json({ task, message: 'Задача удалена' });
-//     } catch (e) { res.status(500).json({ message: 'Ошибка при удалении задачи' }) }
-// });
+router.delete('/:id', auth, async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        await Task.findByIdAndDelete(req.params.id);
+        res.json({ task, message: 'Задача удалена' });
+    } catch (e) { res.status(500).json({ message: 'Ошибка при удалении задачи' }) }
+});
 
 module.exports = router;

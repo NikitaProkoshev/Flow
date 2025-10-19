@@ -32,7 +32,7 @@ interface Task {
 }
 
 interface CreateTaskProps {
-    task?: Task;
+    task: Task;
 }
 
 export const CreateTask = createOverlay<CreateTaskProps>((props) => {
@@ -61,7 +61,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
     const [recStartDate, setRecStartDate] = useState(task.recurrence?.startDate ? dateToString(task.recurrence.startDate) : undefined);
     const [recEndDate, setRecEndDate] = useState(task.recurrence?.endDate ? dateToString(task.recurrence.endDate) : undefined);
 
-    const [tab, setTab] = useState(window.location.pathname === '/templates' ? 'r' : (window.location.pathname === '/habits' ? 'h' : (task.isTemplate ? 'r' : 't')));
+    const [tab, setTab] = useState(window.location.pathname === '/templates' ? 'r' : (window.location.pathname === '/habits' ? 'h' : (window.location.pathname === '/projects' ? 'p' : (task.isTemplate ? 'r' : 't'))));
 
 
     useEffect(() => {
@@ -74,19 +74,24 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         try {
             if (required === 0) {
                 var data;
-                const optionalFields = tab === 'h' ? { epic: 'Привычки', isTemplate: true, recurrence: { frequency, interval } }
-                    : (tab === 'p' ? { epic: epic, eisenhower: eisenhower, parentId: parentId, dateStart: toUTCString(dateStart, timeStart), description: desc, isProject: true }
-                        :( tab === 't'? { epic: epic, eisenhower: eisenhower, isEvent: isEvent, parentId: parentId, dateStart: toUTCString(dateStart, timeStart), description: desc, subTasks: subTasks}
-                            : { epic: epic, eisenhower: eisenhower, isEvent: isEvent, parentId: parentId, dateStart: toUTCString(dateStart, timeStart), description: desc, subTasks: subTasks, isTemplate: true,
-                                recurrence: frequency ? { frequency, interval, startDate: recStartDate, endDate: recEndDate } : undefined
-                            }
-                        )
-                    )
-                if (Object.keys(task).length === 0) {
-                    data = await request('/api/task/create', 'POST', { title: title, status: false, dateEnd: toUTCString(dateEnd, timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
-                } else {
-                    data = await request(`/api/task/update/${task._id}`, 'PUT', { _id: task._id, status: false, title: title, dateEnd: toUTCString(dateEnd, timeEnd), ...optionalFields } as any, { Authorization: `Bearer ${auth.token}` });
+                const taskData = {
+                    _id: Object.keys(task).length === 0 ? undefined : task._id,
+                    isEvent: ['t', 'r'].includes(tab) && isEvent,
+                    isTemplate: ['h', 'r'].includes(tab),
+                    isProject: tab === 'p',
+                    status: false,
+                    eisenhower: tab === 'h' ? 'A' : eisenhower,
+                    epic: tab === 'h' ? 'Привычки' : epic,
+                    title: title,
+                    dateEnd: toUTCString(dateEnd, timeEnd),
+                    parentId: tab === 'h' ? '' : parentId[0],
+                    dateStart: tab === 'h' ? undefined : toUTCString(dateStart, timeStart),
+                    description: tab === 'h' ? '' : desc,
+                    subTasks: ['h', 'p'].includes(tab) ? [] : subTasks,
+                    recurrence: ['p', 't'].includes(tab) ? {} : { frequency, interval, startDate: tab === 'h' ? new Date() : recStartDate, endDate: tab === 'h' ? new Date('2099-12-31') : recEndDate },
                 }
+                if (Object.keys(task).length === 0) data = await request('/api/task/create', 'POST', taskData as any, { Authorization: `Bearer ${auth.token}` });
+                else data = await request(`/api/task/update/${task._id}`, 'PUT', taskData as any, { Authorization: `Bearer ${auth.token}` });
                 toaster.create({description: data.error || `Задача ${Object.keys(task).length > 0 ? 'обновлена' : 'создана'}!`, type: data.error ? 'error' : 'success' });
                 if (!data.error) {
                     props.onOpenChange?.({ open: false })
@@ -96,10 +101,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         } catch (e) {}
     };
 
-    const newSubTask = () => {
-        const newId = Math.max(subTasks.length, 0) + 1;
-        setSubTasks([...subTasks, { _id: newId, name: ``, status: false }]);
-    };
+    const newSubTask = () => { setSubTasks([...subTasks, { _id: Math.max(subTasks.length, 0) + 1, name: ``, status: false }]) };
 
     const { contains } = useFilter({ sensitivity: "base" })
     const { collection, filter } = useListCollection({ initialItems: projects?.map(({ title, _id }) => (_id ? { label: title, value: _id } : null)).filter(Boolean) || [], filter: contains })

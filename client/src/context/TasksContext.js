@@ -31,9 +31,6 @@ export const TasksProvider = ({ children }) => {
         if (!!token && loading) fetchTasks();
     }, [fetchTasks, loading]);
 
-    const today = new Date(), yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
     var tasksCopy = JSON.parse(JSON.stringify(allTasks));
     const habitsTemplates = tasksCopy.filter(task => task.isTemplate && task.epic === 'Привычки'); // Шаблоны привычек
     tasksCopy = tasksCopy.filter(task => !(task.isTemplate && task.epic === 'Привычки'));
@@ -41,8 +38,8 @@ export const TasksProvider = ({ children }) => {
     tasksCopy = tasksCopy.filter(task => !(task.isTemplate && task.isEvent));
     const tasksTemplates = tasksCopy.filter(task => task.isTemplate); // Шаблоны задач
     tasksCopy = tasksCopy.filter(task => !task.isTemplate);
-    const habits = tasksCopy.filter(task => task.epic === 'Привычки' && task.templateId && [dateToString(today), dateToString(yesterday)].includes(task.instanceDate.slice(0, 10))); // Экземпляры привычек
-    tasksCopy = tasksCopy.filter(task => !(task.epic === 'Привычки' && task.templateId && [dateToString(today), dateToString(yesterday)].includes(task.instanceDate.slice(0, 10))));
+    const habits = tasksCopy.filter(task => task.epic === 'Привычки' && task.templateId); // Экземпляры привычек
+    tasksCopy = tasksCopy.filter(task => !(task.epic === 'Привычки' && task.templateId));
     const projects = tasksCopy.filter(task => task.isProject); // Проекты
     tasksCopy = tasksCopy.filter(task => !task.isProject);
     const events = tasksCopy.filter(task => task.isEvent); // Мероприятия
