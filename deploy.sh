@@ -38,9 +38,25 @@ sudo chown -R www-data:www-data /var/www/flow
 
 # Копируем конфигурацию nginx
 echo -e "${YELLOW}⚙️ Настраиваем nginx...${NC}"
+
+# Отключаем дефолтный сайт nginx
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Копируем нашу конфигурацию
 sudo cp nginx.conf /etc/nginx/sites-available/flow
+
+# Создаем символическую ссылку
 sudo ln -sf /etc/nginx/sites-available/flow /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
+
+# Проверяем конфигурацию
+if sudo nginx -t; then
+    echo -e "${GREEN}✅ Конфигурация nginx корректна${NC}"
+    sudo systemctl reload nginx
+    echo -e "${GREEN}✅ Nginx перезагружен${NC}"
+else
+    echo -e "${RED}❌ Ошибка в конфигурации nginx${NC}"
+    exit 1
+fi
 
 # Запускаем приложение через PM2
 echo -e "${YELLOW}🚀 Запускаем приложение...${NC}"
