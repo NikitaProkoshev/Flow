@@ -1,0 +1,16 @@
+[Unit]
+Description=Flow Application
+After=network.target
+
+[Service]
+Type=forking
+User=root
+WorkingDirectory=/var/www/flow
+ExecStart=/usr/bin/pm2 start /var/www/flow/ecosystem.config.js --env production
+ExecReload=/usr/bin/pm2 reload flow-app
+ExecStop=/usr/bin/pm2 stop flow-app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
