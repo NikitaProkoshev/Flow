@@ -1,6 +1,6 @@
 {
-  "port": 80,
+  "port": 5000,
   "jwtSecret": "pvnto2211",
   "mongoUri": "mongodb+srv://pvnto:Nikita4725!@cluster.myhu7ch.mongodb.net/?retryWrites=true&w=majority&appName=Cluster",
-  "baseUrl": "http://pvnto.ru"
+  "baseUrl": "https://pvnto.ru"
 }

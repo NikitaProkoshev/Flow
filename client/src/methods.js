@@ -63,20 +63,6 @@ export function upDownSubTask(target, subTasks, subTask, setSubTasks) {
     setSubTasks(subTasksCopy);
 }
 
-export async function checkingSome(task, request, token, updateTasks) {
-    await request('/api/task/check/' + task._id, 'PUT', { _id: task._id, status: !task.status, subTasks: task.subTasks }, { Authorization: `Bearer ${token}` });
-    toaster.create({
-        description: 'Задача выполнена!',
-        type: 'success',
-        duration: 3000,
-        action: {
-            label: "Отменить",
-            onClick: async () => {await request('/api/task/check/' + task._id, 'PUT', { _id: task._id, status: task.status, subTasks: task.subTasks }, { Authorization: `Bearer ${token}` }); updateTasks(true)},
-          }
-    })
-    updateTasks(true);
-}
-
 export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, fontSize, color) {
     const isToday = (date) =>  date.toDateString() === today.toDateString();
     const formatTime = (date) =>  date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
