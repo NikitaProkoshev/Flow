@@ -5,14 +5,14 @@ import { dateToString, epicToColor } from '../methods';
 import { Habits } from '../components/Habits';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { ButtonGroup, Button, IconButton, Box, Text } from '@chakra-ui/react';
+import { ButtonGroup, Button, IconButton, Box, Text, Badge } from '@chakra-ui/react';
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
 import { useTasks } from '../context/TasksContext';
 import { CreateTask } from '../components/CreateTask.tsx';
 import { Check } from '../components/ui/Check';
 
 export const MainPage = () => {
-    const { tasks, events } = useTasks();
+    const { tasks, events, projects } = useTasks();
     const [isTodayVisible, setIsTodayVisible] = useState(true);
     const [ epics ] = useContext(EpicsContext);
     const calendarRef = useRef(null);
@@ -29,6 +29,7 @@ export const MainPage = () => {
             title: event.title,
             start: event.dateStart,
             end: event.dateEnd,
+            parentId: event.parentId,
             backgroundColor: event.status ? '#424242' : epicToColor[event.epic] + '1)',
             textColor: '#212121',
             status: event.status,
@@ -40,6 +41,16 @@ export const MainPage = () => {
         const typeOrder = { A: 1, B: 2, C: 3, D: 4 };
         return typeOrder[a.eisenhower] - typeOrder[b.eisenhower] || new Date(a.dateEnd) - new Date(b.dateEnd);
     };
+
+    function getParentsTitles(parentId) {
+        const parentsTitles = [];
+        while (parentId) {
+            const parentTask = projects.filter(task => task._id === parentId)[0];
+            parentsTitles.push(parentTask?.shortTitle ? parentTask.shortTitle : parentTask?.title);
+            parentId = parentTask?.parentId;
+        }
+        return parentsTitles.reverse().join(' • ');
+    }
     
     var tasksCopy = JSON.parse(JSON.stringify(tasks));
     tasksCopy = tasksCopy.filter(task => (!task.isEvent && !task.status) || (task.epic !== 'Привычки' && epics.includes(task.epic) && !task.isTemplate && !task.isProject));
@@ -71,14 +82,23 @@ export const MainPage = () => {
                 </ButtonGroup>
             </div>
             <FullCalendar
-                ref={calendarRef} plugins={[timeGridPlugin]} initialView="fourDay" locale="rulocale" slotMinTime="09:00:00" slotMaxTime="22:30:00"
+                ref={calendarRef} plugins={[timeGridPlugin]} initialView="threeDay" locale="rulocale" slotMinTime="09:00:00" slotMaxTime="22:30:00"
                 contentHeight={1080} expandRows={true} headerToolbar={false} slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
                 dayHeaderFormat={{ weekday: 'long', month: '2-digit', day: '2-digit' }}
-                views={{ fourDay: { type: 'timeGrid', duration: { days: 4 }, buttonText: '4 days' } }}
+                views={{ threeDay: { type: 'timeGrid', duration: { days: 3 }, buttonText: '3 days' } }}
                 eventContent={arg => (
                     <Box display='flex' flexDirection='row' alignItems='center' h='full' p={1} color='#e0e0e0' filter={arg.event.extendedProps.status ? 'grayscale(1)' : 'none'}>
-                        <Check onClick={{task: events.filter(event => arg.event.id === event._id)[0]}} checked={arg.event.extendedProps.status}/>
-                        <Text ml={3} maxH='full' overflowY='auto' onClick={() => {if (arg.event.id !== 'undefined') CreateTask.open('a', { task: events.find(event => event._id === arg.event.id) })}}>{arg.event.title}</Text>
+                        <Check rW={5} rH={5} cW={5} cH={5} onClick={{task: events.filter(event => arg.event.id === event._id)[0]}} checked={arg.event.extendedProps.status}/>
+                        <Box ml={3} maxH='full' overflowY='auto'>
+                            {arg.event.extendedProps.parentId && 
+                                // <Box display='flex' flexDirection='row' alignItems='center'>
+                                //     {getParentsTitles(arg.event.extendedProps.parentId).map((title, index) =>
+                                //         <>{index > 0 ? ' • ' : null}{console.log(index)}<Badge h={6} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{title}</Badge></>)}
+                                // </Box>
+                                <Badge minH={6} px={2} py={1} rounded='md' textAlign='left' textWrap='wrap' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{getParentsTitles(arg.event.extendedProps.parentId)}</Badge>
+                                }
+                            <Text onClick={() => {if (arg.event.id !== 'undefined') CreateTask.open('a', { task: events.find(event => event._id === arg.event.id) })}}>{arg.event.title}</Text>
+                        </Box>
                     </Box>
                 )}
                 events={eventsToCalendar(events)}

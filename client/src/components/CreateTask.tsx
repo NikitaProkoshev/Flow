@@ -63,11 +63,10 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
 
     const [tab, setTab] = useState(window.location.pathname === '/templates' ? 'r' : (window.location.pathname === '/habits' ? 'h' : (window.location.pathname === '/projects' ? 'p' : (task.isTemplate ? 'r' : 't'))));
 
-
-    useEffect(() => {
-        setRequired(document.getElementsByClassName('required').length + (epic === '' ? 1 : 0) + (eisenhower === '' ? 1 : 0));
-        document.documentElement.style.setProperty('--epicColor', epicToColor[epic] + '1)');
-    }, [setRequired]);
+    // useEffect(() => {
+    //     setRequired(document.getElementsByClassName('required').length + (epic === '' ? 1 : 0) + (eisenhower === '' ? 1 : 0));
+    //     document.documentElement.style.setProperty('--epicColor', epicToColor[epic] + '1)');
+    // }, [setRequired]);
 
     const saveChanges = async () => {
         try {

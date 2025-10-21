@@ -6,6 +6,7 @@ import { Badge } from '@chakra-ui/react';
 import { TasksListSkeleton } from './TasksListSkeleton';
 import { useTasks } from '../context/TasksContext';
 import { Check } from './ui/Check';
+import { BsArrowCounterclockwise } from 'react-icons/bs';
 
 export const TasksList = ({ tasks, eisenhower = true, mode='undone' }) => {
     const { projects, firstLoad } = useTasks();
@@ -21,14 +22,14 @@ export const TasksList = ({ tasks, eisenhower = true, mode='undone' }) => {
         }
         return parentsTitles.reverse().join(' • ');
     }
+    
     return (
         <div className='tasksList'>
-            {![0, undefined].includes(tasks?.length) ? tasks.map((task) => (
+            {![0, undefined].includes(tasks?.length) ? tasks.sort((a, b) => new Date(b.checkDate || b.dateEnd) - new Date(a.checkDate || a.dateEnd)).map((task) => (
                 <div key={task._id} className="my-4 pb-[1px] bg-[#0e0e10] rounded-2xl">
-                    {task.title === 'ntcn' ? console.log(task._id) : null}
                     <div className="flex items-center bg-[#131315] rounded-2xl">
-                        <Check ml={4} mr={2} dChecked={task.status} onClick={{task}}/>
-                        <div className="flex flex-col items-start w-[calc(100%-3rem)] mx-2 my-4" onClick={() => { CreateTask.open('a', { task: task }) }}>
+                        {mode !== 'done' && <Check ml={4} mr={2} dChecked={task.status} onClick={{task}}/>}
+                        <div className={`flex flex-col items-start w-[calc(100%-3rem)] mx-${mode === 'done' ? '4' : '2'} my-4`} onClick={() => { CreateTask.open('a', { task: task }) }}>
                             <div className="flex flex-row items-center h-auto break-all">
                                 {['МегаФон','РУДН','ФК_Краснодар','Flow'].includes(task.epic) ? <img className="size-6" src={`..\\img\\${epicToIcon[task.epic]}.png`} alt={task.epic} /> : epicToIcon[task.epic]}
                                 {task.parentId && <Badge h={6} ml={3} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{getParentsTitles(task.parentId)}</Badge>}
@@ -40,6 +41,7 @@ export const TasksList = ({ tasks, eisenhower = true, mode='undone' }) => {
                                     typeof task.dateStart === 'string' && typeof task.dateEnd === 'string' ? !task.dateStart.endsWith('T21:00:00.000Z') && !task.dateEnd.endsWith('T21:00:00.000Z') : false)}
                             </div>
                         </div>
+                        {mode === 'done' && <BsArrowCounterclockwise className='w-16 h-16 text-[#e0e0e0] p-4'/>}
                     </div>
                     {task.subTasks.length !== 0 && <div className="my-3 ml-14">
                         {task.subTasks.map((subTask) => (
