@@ -1,9 +1,9 @@
 import React, { useContext } from 'react';
 import { Checkbox } from '@chakra-ui/react';
-import { useHttp } from '../hooks/http.hook';
-import { AuthContext } from '../context/AuthContext';
-import { toaster } from './ui/toaster';
-import { useTasks } from '../context/TasksContext';
+import { useHttp } from '../../hooks/http.hook';
+import { AuthContext } from '../../context/AuthContext';
+import { toaster } from './toaster';
+import { useTasks } from '../../context/TasksContext';
 
 export const Check = ({ rW = 6, rH = 6, cW = 6, cH = 6, mt = 0, mr = 0, ml = 0, disabled = false, dChecked, checked, label = undefined, onClick = {} }) => {
     const { request } = useHttp();

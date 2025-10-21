@@ -45,43 +45,52 @@ self.addEventListener('activate', (event) => {
 
 // Перехват запросов
 self.addEventListener('fetch', (event) => {
-  // Пропускаем запросы к API
-  if (event.request.url.includes('/api/')) {
-    return;
-  }
+    // Пропускаем запросы к API
+    if (event.request.url.includes('/api/')) {
+        return;
+    }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Возвращаем кэшированную версию или загружаем из сети
-        return response || fetch(event.request)
-          .then((fetchResponse) => {
-            // Проверяем, что получили валидный ответ
-            if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
-              return fetchResponse;
-            }
+    // Пропускаем запросы в dev режиме (hot-reload)
+    if (event.request.url.includes('localhost') || 
+        event.request.url.includes('127.0.0.1') ||
+        event.request.url.includes('webpack') ||
+        event.request.url.includes('sockjs') ||
+        event.request.url.includes('hot-update')) {
+        return;
+    }
 
-            // Клонируем ответ
-            const responseToCache = fetchResponse.clone();
+    event.respondWith(
+        caches.match(event.request)
+            .then((response) => {
+                // Возвращаем кэшированную версию или загружаем из сети
+                return response || fetch(event.request)
+                    .then((fetchResponse) => {
+                        // Проверяем, что получили валидный ответ
+                        if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+                            return fetchResponse;
+                        }
 
-            // Кэшируем только GET запросы
-            if (event.request.method === 'GET') {
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseToCache);
-                });
-            }
+                        // Клонируем ответ
+                        const responseToCache = fetchResponse.clone();
 
-            return fetchResponse;
-          })
-          .catch(() => {
-            // Если сеть недоступна, показываем офлайн страницу
-            if (event.request.destination === 'document') {
-              return caches.match('/');
-            }
-          });
-      })
-  );
+                        // Кэшируем только GET запросы
+                        if (event.request.method === 'GET') {
+                            caches.open(CACHE_NAME)
+                                .then((cache) => {
+                                    cache.put(event.request, responseToCache);
+                                });
+                        }
+
+                        return fetchResponse;
+                    })
+                    .catch(() => {
+                        // Если сеть недоступна, показываем офлайн страницу
+                        if (event.request.destination === 'document') {
+                            return caches.match('/');
+                        }
+                    });
+            })
+    );
 });
 
 // Обработка push уведомлений (для будущего использования)

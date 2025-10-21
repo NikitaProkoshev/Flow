@@ -9,10 +9,10 @@ import { ButtonGroup, Button, IconButton, Box, Text } from '@chakra-ui/react';
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
 import { useTasks } from '../context/TasksContext';
 import { CreateTask } from '../components/CreateTask.tsx';
-import { Check } from '../components/Check';
+import { Check } from '../components/ui/Check';
 
 export const MainPage = () => {
-    const { tasks, events, tasksTemplates } = useTasks();
+    const { tasks, events } = useTasks();
     const [isTodayVisible, setIsTodayVisible] = useState(true);
     const [ epics ] = useContext(EpicsContext);
     const calendarRef = useRef(null);

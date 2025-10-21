@@ -63,7 +63,7 @@ export function upDownSubTask(target, subTasks, subTask, setSubTasks) {
     setSubTasks(subTasksCopy);
 }
 
-export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, fontSize, color) {
+export function formatDateDisplay(dateStart, dateEnd, hasTime, fontSize, color) {
     const isToday = (date) =>  date.toDateString() === today.toDateString();
     const formatTime = (date) =>  date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
     const formatDate = (date, showYear = false) => date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', ...(showYear && { year: 'numeric' }) });
@@ -71,7 +71,7 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
     if (!dateStart || dateStart?.getFullYear() === 1970) {
         return (<div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
             <span className={`text-${fontSize || 'md'} font-medium`}> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>
-            {endHasTime && (
+            {hasTime && (
                 <><span className={`text-[${color || '#a0a0a0'}]`}>•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateEnd)}</span></>
             )}
         </div>)
@@ -82,12 +82,12 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
         <div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
             <div className="flex items-center space-x-1">
                 <span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateStart) ? 'Сегодня' : formatDate(dateStart, dateStart.getFullYear() !== today.getFullYear())}</span>
-                {startHasTime && <><span className="text-gray-500">•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateStart)}</span></>}
+                {hasTime && <><span className="text-gray-500">•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateStart)}</span></>}
             </div>
             <FaArrowRight className={`text-[${color || '#a0a0a0'}] text-${fontSize || 'md'}`} />
             <div className="flex items-center space-x-1">
                 {!sameDay && (<span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear() )}</span>)}
-                {endHasTime && (<>
+                {hasTime && (<>
                     {!sameDay && (
                         <span className={`text-[${color || '#a0a0a0'}]`}>•</span>
                     )}

@@ -4,11 +4,11 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { IconButton } from '@chakra-ui/react';
 import { useTasks } from '../context/TasksContext';
 import { HabitsSkeleton } from './HabitsSkeleton';
-import { Check } from './Check';
+import { Check } from './ui/Check';
 
 
 export const Habits = () => {
-    const { habits, loading } = useTasks();
+    const { habits, firstLoad } = useTasks();
     const todayString = dateToString(new Date());
     const yesterdayString = dateToString(new Date().setDate(new Date().getDate() - 1));
     const [frontIsToday, setFrontIsToday] = useState(true);
@@ -16,7 +16,7 @@ export const Habits = () => {
     const todayHabits = habits.filter(habit => habit.instanceDate.slice(0, 10) === todayString);
     const yesterdayHabits = habits.filter(habit => habit.instanceDate.slice(0, 10) === yesterdayString);
 
-    if (loading) return <HabitsSkeleton />;
+    if (firstLoad) return <HabitsSkeleton />;
 
     {[0, undefined].includes(todayHabits?.length) && <div className="noHabitsMessage">Пока привычек нет</div>}
 

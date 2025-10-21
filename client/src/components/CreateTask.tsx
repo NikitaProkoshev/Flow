@@ -3,17 +3,19 @@ import { useHttp } from '../hooks/http.hook';
 import { AuthContext } from '../context/AuthContext';
 import { dateToString, getEisenhowerColor, formatDateDisplay, toUTCString } from '../methods';
 import { epicToIcon, epicToColor, upDownSubTask, formatRecurrenceFrequency, formatRecurrencePeriod } from '../methods';
-import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box, Select, createListCollection, createOverlay, Dialog, Badge, Textarea, Popover, Editable, Text } from '@chakra-ui/react';
+import { Button, IconButton, Input, Combobox, Portal, useFilter, useListCollection, Box, Select, createListCollection, createOverlay, Dialog, Badge, Textarea, Popover, Editable, Text, Field } from '@chakra-ui/react';
 import { FaChevronUp, FaChevronDown, FaPlus, FaXmark, FaAt, FaRepeat, FaTrash } from 'react-icons/fa6';
 import { toaster } from './ui/toaster';
 import { BsCalendar3Range, BsCalendar, BsCalendarCheck, BsCalendarX } from 'react-icons/bs';
 import { useTasks } from '../context/TasksContext';
+import { FloatLabelInput } from './ui/FloatLabelInput.tsx';
 
 interface Task {
     _id?: string;
     epic?: string;
     parentId?: string;
     title?: string;
+    shortTitle?: string;
     description?: string;
     isEvent?: boolean;
     isProject?: boolean;
@@ -44,17 +46,15 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
     const [epic, setEpic] = useState(task.epic || Object.keys(epicToIcon)[0]);
     const [parentId, setParentId] = useState(task.parentId ? [task.parentId] : []);
     const [title, setTitle] = useState(task.title || '');
+    const [shortTitle, setShortTitle] = useState(task.shortTitle || '');
     const [desc, setDesc] = useState(task.description || '');
     const [isEvent, setIsEvent] = useState(task.isEvent || false);
     const [dateStart, setDateStart] = useState((task.dateStart && task?.dateStart?.slice(0,4) !== '1970') ? dateToString(task.dateStart) : undefined);
-    const [timeStart, setTimeStart] = useState((typeof task.dateStart === 'string' && !task.dateStart.endsWith('T00:00:00.000Z'))
-        ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
+    const [timeStart, setTimeStart] = useState((typeof task.dateStart === 'string' && !task.dateStart.endsWith('T21:00:00.000Z')) ? new Date(task.dateStart).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
     const [dateEnd, setDateEnd] = useState(task.dateEnd !== undefined ? dateToString(task.dateEnd) : dateToString(new Date()));
-    const [timeEnd, setTimeEnd] = useState((typeof task.dateEnd === 'string' && !task.dateEnd.endsWith('T00:00:00.000Z'))
-        ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
+    const [timeEnd, setTimeEnd] = useState((typeof task.dateEnd === 'string' && !task.dateEnd.endsWith('T21:00:00.000Z')) ? new Date(task.dateEnd).toLocaleTimeString('ru-RU').slice(0, 5) : undefined);
     const [eisenhower, setEisenhower] = useState(task.eisenhower || 'A');
     const [subTasks, setSubTasks] = useState(task.subTasks || []);
-    const [editing, setEditing] = useState(true);
     const [required, setRequired] = useState(2);
     const [frequency, setFrequency] = useState(task.recurrence?.frequency || 'daily');
     const [interval, setInterval] = useState(task.recurrence?.interval || 1);
@@ -67,10 +67,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
     useEffect(() => {
         setRequired(document.getElementsByClassName('required').length + (epic === '' ? 1 : 0) + (eisenhower === '' ? 1 : 0));
         document.documentElement.style.setProperty('--epicColor', epicToColor[epic] + '1)');
-        if (editing && task.eisenhower !== undefined) setEditing(false);
     }, [setRequired]);
-
-    console.log("AAAAAAAAAAA");
 
     const saveChanges = async () => {
         try {
@@ -85,6 +82,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                     eisenhower: tab === 'h' ? 'A' : eisenhower,
                     epic: tab === 'h' ? 'Привычки' : epic,
                     title: title,
+                    shortTitle: tab === 'p' && title.length > 10 ? shortTitle : '',
                     dateEnd: toUTCString(dateEnd, timeEnd),
                     parentId: tab === 'h' ? '' : parentId[0],
                     dateStart: tab === 'h' ? undefined : toUTCString(dateStart, timeStart),
@@ -92,8 +90,11 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                     subTasks: ['h', 'p'].includes(tab) ? [] : subTasks,
                     recurrence: ['p', 't'].includes(tab) ? {} : { frequency, interval, startDate: tab === 'h' ? new Date() : recStartDate, endDate: tab === 'h' ? new Date('2099-12-31') : recEndDate },
                 }
-                if (Object.keys(task).length === 0) data = await request('/api/task/create', 'POST', taskData as any, { Authorization: `Bearer ${auth.token}` });
-                else data = await request(`/api/task/update/${task._id}`, 'PUT', taskData as any, { Authorization: `Bearer ${auth.token}` });
+                if (Object.keys(task).length === 0) data = await request('/api/task/create', 'POST', taskData as any, { Authorization: `Bearer ${auth.token}` })
+                else {
+                    if (task.templateId) data = await request(`/api/task/updateInstance/${task._id}`, 'PUT', taskData as any, { Authorization: `Bearer ${auth.token}` })
+                    else data = await request(`/api/task/update/${task._id}`, 'PUT', taskData as any, { Authorization: `Bearer ${auth.token}` })
+                }
                 toaster.create({description: data.error || `Задача ${Object.keys(task).length > 0 ? 'обновлена' : 'создана'}!`, type: data.error ? 'error' : 'success' });
                 if (!data.error) {
                     props.onOpenChange?.({ open: false })
@@ -126,11 +127,15 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
 
     async function deleteTask(taskId: string) {
         const data = await request(`/api/task/${taskId}`, 'DELETE', null, { Authorization: `Bearer ${auth.token}` });
+        console.log(data);
         toaster.create({
             description: data.message,
             type: data.error ? 'error' : 'success',
             duration: 5000,
-            action: { label: "Отменить", onClick: async () => {await request('/api/task/create', 'POST', task, { Authorization: `Bearer ${auth.token}` }); updateTasks(true)} }
+            action: { label: "Отменить", onClick: async () => {
+                if (data.task.isTemplate) await request(`/api/task/${taskId}`, 'DELETE', null, { Authorization: `Bearer ${auth.token}` })
+                else await request('/api/task/create', 'POST', data.task, { Authorization: `Bearer ${auth.token}` }); 
+                updateTasks(true)} }
         })
         props.onOpenChange?.({ open: false })
         updateTasks(true)
@@ -140,7 +145,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
         <Portal>
             <Dialog.Backdrop bg="rgba(0,0,0,0.35)" style={{ backdropFilter: 'blur(1px)' }} />
             <Dialog.Positioner>
-                <Dialog.Content alignItems='start' bg='#121213' borderRadius='2xl' maxW={{base: '80vw', lg: '60vw'}} w='full'>
+                <Dialog.Content alignItems='start' bg='#131315' borderRadius='2xl' maxW={{base: '80vw', lg: '60vw'}} w='full'>
                     <Dialog.Header w='full'>
                         {/* Тип объекта */}
                         <Dialog.Title w='full' display='flex' flexDirection='row' justifyContent='space-between' alignItems='center'>
@@ -202,10 +207,12 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                                 </Select.Root>
                             </Box>}
                             {/* Название */}
-                            <Editable.Root w='calc(100% - 6.5rem)' activationMode="dblclick" required={title.length === 0} value={title} onValueChange={(e) => setTitle(e.value)} placeholder={'Название ' + (isEvent ? 'мероприятия' : 'задачи')}>
+                            <Editable.Root  w={tab === 'p' && title.length > 10 ? 'calc(100% - 17rem)' : 'calc(100% - 6.5rem)'} invalid={title.length === 0 ? true : false} activationMode="dblclick" value={title} onValueChange={(e) => setTitle(e.value)} placeholder={'Название ' + (isEvent ? 'мероприятия' : 'задачи')}>
                                 <Editable.Preview w='full'/>
-                                <Editable.Input w='full' variant="flushed" color='#e0e0e0' />
+                                <Editable.Input w='full' color='#e0e0e0' />
                             </Editable.Root>
+                            {/* Короткое название */}
+                            {(tab === 'p' && title.length > 10) && <FloatLabelInput label='Короткое название' value={shortTitle} onValueChange={(e) => {console.log(e); console.log(shortTitle);setShortTitle(e)}} invalid={title.length > 10 && shortTitle?.length === 0} />}
                         </Box>
                         <Box display='flex'>
                             {/* Мероприятие */}
@@ -293,7 +300,7 @@ export const CreateTask = createOverlay<CreateTaskProps>((props) => {
                                     <Badge h={8} variant="outline" colorPalette="grey" rounded='md' fontSize='md' mr={2} px={2} color={dateEnd ? '#e0e0e0' : '#52525b'} boxShadowColor={dateEnd ? '#e4e4e7' : '#52525b'}>
                                         <BsCalendar />
                                         {formatDateDisplay(dateStart ? new Date(dateStart + (timeStart ? 'T'+timeStart+':00' : 'T00:00:00')) : undefined,
-                                            new Date(dateEnd + (timeEnd ? 'T'+timeEnd+':00' : 'T00:00:00')), !!timeStart, !!timeEnd, 'xs', '#e0e0e0')}
+                                            new Date(dateEnd + (timeEnd ? 'T'+timeEnd+':00' : 'T00:00:00')), !!timeStart, 'xs', '#e0e0e0')}
                                     </Badge>
                                 </Popover.Trigger>
                                 <Popover.Positioner>
