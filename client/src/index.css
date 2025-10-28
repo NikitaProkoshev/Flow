@@ -446,12 +446,6 @@ div.createTask {
     border-bottom: 1px solid #424242;
 }
 
-.input-block1 .input-fields3 {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
 .input-block3 {
     margin-left: 22px;
     margin-top: 13px;
@@ -555,6 +549,14 @@ div.fc div.fc-timegrid-slot-label-cushion {
 div.fc-theme-standard td,
 div.fc-theme-standard th {
     border: 1px solid #5a5a5a;
+}
+
+.fc-timegrid-event-harness-inset .fc-timegrid-event {
+    box-shadow: none;
+}
+
+.fc-v-event {
+    border: 1px solid #7b7b7b;
 }
 
 /* Стили для SideBar */

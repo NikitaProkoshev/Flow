@@ -77,7 +77,7 @@ export const ProjectsPage = () => {
                                 <div className="flex flex-col items-start w-[calc(100%-3rem)] mx-2 my-4" onClick={() => { CreateTask.open('a', { task: projects.find(project => project._id === node.id) }) }}>
                                     <div className="flex flex-row items-center h-auto break-all">
                                         {['МегаФон','РУДН','ФК_Краснодар','Flow'].includes(node.epic) ? <img className="size-6" src={`..\\img\\${epicToIcon[node.epic]}.png`} alt={node.epic} /> : epicToIcon[node.epic]}
-                                        <h3 className="text-xl ml-3 text-[#e0e0e0]">{node.name}</h3>
+                                        <h3 className="text-xl ml-3 text-[#e0e0e0]">{node.name + (node.shortName ? ` [${node.shortName}]` : '')}</h3>
                                     </div>
                                     <div className="flex flex-row items-center h-auto break-all mt-3 w-full text-md">
                                         <Badge w={6} h={6} mr={3} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' variant='subtle' colorPalette={getEisenhowerColor[node.eisenhower]}>{node.eisenhower}</Badge>

@@ -22,6 +22,11 @@ export const TasksList = ({ tasks, eisenhower = true, mode='undone' }) => {
         }
         return parentsTitles.reverse().join(' • ');
     }
+
+    const hasTime = (dateStart, dateEnd) => {
+        return typeof dateStart === 'string' && typeof dateEnd === 'string'
+            ? !((dateStart.endsWith('T21:00:00.000Z') && dateEnd.endsWith('T21:00:00.000Z')) || (dateStart.endsWith('T00:00:00.000Z') && dateEnd.endsWith('T00:00:00.000Z')))
+            : false}
     
     return (
         <div className='tasksList'>
@@ -37,11 +42,10 @@ export const TasksList = ({ tasks, eisenhower = true, mode='undone' }) => {
                             </div>
                             <div className="flex flex-row items-center h-auto break-all mt-3 w-full text-md">
                                 {eisenhower && <Badge rW={6} h={6} mr={3} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' variant='subtle' colorPalette={getEisenhowerColor[task.eisenhower]}>{task.eisenhower}</Badge>}
-                                {formatDateDisplay(task.dateStart ? new Date(task.dateStart) : undefined,new Date(task.dateEnd),
-                                    typeof task.dateStart === 'string' && typeof task.dateEnd === 'string' ? !task.dateStart.endsWith('T21:00:00.000Z') && !task.dateEnd.endsWith('T21:00:00.000Z') : false)}
+                                {formatDateDisplay(task.dateStart ? new Date(task.dateStart) : undefined, new Date(task.dateEnd), hasTime(task.dateStart, task.dateEnd))}
                             </div>
                         </div>
-                        {mode === 'done' && <BsArrowCounterclockwise className='w-16 h-16 text-[#e0e0e0] p-4'/>}
+                        {mode === 'done' && <BsArrowCounterclockwise className='w-[3.75rem] h-[3.75rem] text-[#e0e0e0] p-4'/>}
                     </div>
                     {task.subTasks.length !== 0 && <div className="my-3 ml-14">
                         {task.subTasks.map((subTask) => (

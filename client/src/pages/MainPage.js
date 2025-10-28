@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useRef, useState } from 'react';
+import React, { useCallback, useContext, useRef, useState, useEffect } from 'react';
 import { EpicsContext } from '../App';
 import { TasksList } from '../components/TasksList';
 import { dateToString, epicToColor } from '../methods';
@@ -16,6 +16,22 @@ export const MainPage = () => {
     const [isTodayVisible, setIsTodayVisible] = useState(true);
     const [ epics ] = useContext(EpicsContext);
     const calendarRef = useRef(null);
+    const [calendarHeight, setCalendarHeight] = useState(1080);
+    const [calendarDays, setCalendarDays] = useState(null)
+
+    useEffect(() => {
+        var maxH = 66;
+        console.log(document.getElementsByClassName('calendarEvent'))
+        for (let elem of document.getElementsByClassName('calendarEvent')) {
+            console.log(elem);
+            const h = elem.children[1].offsetHeight + 9;
+            const interval = elem.dataset.end - elem.dataset.start;
+            if (h / interval > maxH) maxH = h / interval;
+        }
+        console.log(((maxH+4) * 13.5)+117)
+        setCalendarHeight(((maxH+4) * 13.5)+117);
+        // setCalendarHeight
+    }, [calendarDays, tasks])
 
     const today = new Date(), week = new Date(), month = new Date();
     week.setDate(week.getDate() + 7);
@@ -30,7 +46,7 @@ export const MainPage = () => {
             start: event.dateStart,
             end: event.dateEnd,
             parentId: event.parentId,
-            backgroundColor: event.status ? '#424242' : epicToColor[event.epic] + '1)',
+            backgroundColor: event.status ? '#131315' : (new Date(event.dateEnd) < today ? '#0e0e10' : epicToColor[event.epic] + '1)'),
             textColor: '#212121',
             status: event.status,
             allDay: ['00:00', '21:00'].includes(event.dateStart.slice(11,16)) && ['00:00', '20:59'].includes(event.dateEnd.slice(11,16))
@@ -76,28 +92,25 @@ export const MainPage = () => {
             <div className="eventsPage">
                 <h2 className="gradient-font text-3xl h-10">Мероприятия</h2>
                 <ButtonGroup variant="ghost" spacing="0" backgroundColor='#161616' rounded='lg' gap={0}>
-                    <IconButton colorPalette="gray" onClick={() => calendarRef.current.getApi().prev()}><FaAngleLeft className="text-2xl text-[#e0e0e0]" /></IconButton>
+                    <IconButton colorPalette="gray" onClick={() => {calendarRef.current.getApi().prev(); setCalendarDays(calendarRef.current.calendar.currentData.viewTitle)}}><FaAngleLeft className="text-2xl text-[#e0e0e0]" /></IconButton>
                     <Button colorPalette="gray" disabled={isTodayVisible} onClick={() => calendarRef.current.getApi().today()}><p className={`text-2xl${!isTodayVisible ? ' text-[#e0e0e0]' : ''}`}>Сегодня</p></Button>
-                    <IconButton colorPalette="gray" onClick={() => calendarRef.current.getApi().next()}><FaAngleRight className="text-2xl text-[#e0e0e0]" /></IconButton>
+                    <IconButton colorPalette="gray" onClick={() => {calendarRef.current.getApi().next(); setCalendarDays(calendarRef.current.calendar.currentData.viewTitle)}}><FaAngleRight className="text-2xl text-[#e0e0e0]" /></IconButton>
                 </ButtonGroup>
             </div>
             <FullCalendar
                 ref={calendarRef} plugins={[timeGridPlugin]} initialView="threeDay" locale="rulocale" slotMinTime="09:00:00" slotMaxTime="22:30:00"
-                contentHeight={1080} expandRows={true} headerToolbar={false} slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
+                contentHeight={calendarHeight} expandRows={true} headerToolbar={false} slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
                 dayHeaderFormat={{ weekday: 'long', month: '2-digit', day: '2-digit' }}
                 views={{ threeDay: { type: 'timeGrid', duration: { days: 3 }, buttonText: '3 days' } }}
                 eventContent={arg => (
-                    <Box display='flex' flexDirection='row' alignItems='center' h='full' p={1} color='#e0e0e0' filter={arg.event.extendedProps.status ? 'grayscale(1)' : 'none'}>
-                        <Check rW={5} rH={5} cW={5} cH={5} onClick={{task: events.filter(event => arg.event.id === event._id)[0]}} checked={arg.event.extendedProps.status}/>
-                        <Box ml={3} maxH='full' overflowY='auto'>
-                            {arg.event.extendedProps.parentId && 
-                                // <Box display='flex' flexDirection='row' alignItems='center'>
-                                //     {getParentsTitles(arg.event.extendedProps.parentId).map((title, index) =>
-                                //         <>{index > 0 ? ' • ' : null}{console.log(index)}<Badge h={6} px={2} py={1} rounded='md' textAlign='center' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{title}</Badge></>)}
-                                // </Box>
-                                <Badge minH={6} px={2} py={1} rounded='md' textAlign='left' textWrap='wrap' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>{getParentsTitles(arg.event.extendedProps.parentId)}</Badge>
-                                }
-                            <Text onClick={() => {if (arg.event.id !== 'undefined') CreateTask.open('a', { task: events.find(event => event._id === arg.event.id) })}}>{arg.event.title}</Text>
+                    <Box className='calendarEvent' display='flex' flexDirection='row' alignItems='center' h='full' p={1} color='#e0e0e0'
+                        data-start={arg.event.start.getHours() + (arg.event.start.getMinutes() / 60)} data-end={arg.event.end.getHours() + (arg.event.end.getMinutes() / 60)}>
+                        <Check rW={5} rH={5} cW={5} cH={5} onClick={{task: events.filter(event => arg.event.id === event._id)[0]}} checked={arg.event.extendedProps.status} missed={new Date(arg.event.end) < today} />
+                        <Box ml={3} w='full' onClick={() => {if (arg.event.id !== 'undefined') CreateTask.open('a', { task: events.find(event => event._id === arg.event.id) })}}>
+                            {arg.event.extendedProps.parentId && <Badge minH={6} px={2} py={1} mb={2} rounded='md' textAlign='left' textWrap='wrap' fontSize='xs' lineHeight='1' color='#e0e0e0' variant='outline' colorPalette='gray'>
+                                {getParentsTitles(arg.event.extendedProps.parentId)}
+                            </Badge>}
+                            <Text fontSize='sm'>{arg.event.title}</Text>
                         </Box>
                     </Box>
                 )}
