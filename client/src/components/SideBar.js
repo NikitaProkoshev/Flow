@@ -1,8 +1,8 @@
 import React, { useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FaHouse, FaRightFromBracket } from 'react-icons/fa6';
-import { BsGraphUp, BsRepeat, BsListCheck, BsPatchCheckFill, BsArchiveFill, BsClipboard2DataFill } from 'react-icons/bs';
+import { FaRightFromBracket } from 'react-icons/fa6';
+import { BsHouse, BsGraphUp, BsRepeat, BsListCheck, BsUiChecksGrid, BsArchive, BsClipboard2Data } from 'react-icons/bs';
 import { Button } from '@chakra-ui/react';
 import { epicToIcon, epicToColor } from '../methods';
 import { EpicsContext } from '../App';
@@ -24,16 +24,15 @@ export const SideBar = () => {
         setEpics(epicsCopy);
     };
 
-    const pages= [{i: BsGraphUp, t: 'Дашборд', n: '/dashboard'}, {i: BsRepeat, t: 'Шаблоны', n: '/templates'}, { i: BsListCheck, t: 'Задачи', n: '/tasks'}, { i: BsPatchCheckFill, t: 'Привычки', n: '/habits'}, {i: BsArchiveFill, t: 'Архив', n: '/archive'}, {i:BsClipboard2DataFill, t: 'Проекты', n: '/projects'}];
+    const pages= [{i: BsHouse, t: 'Главная', n: '/'}, {i: BsGraphUp, t: 'Дашборд', n: '/dashboard'}, {i: BsRepeat, t: 'Шаблоны', n: '/templates'}, { i: BsListCheck, t: 'Задачи', n: '/tasks'}, { i: BsUiChecksGrid, t: 'Привычки', n: '/habits'}, {i: BsArchive, t: 'Архив', n: '/archive'}, {i:BsClipboard2Data, t: 'Проекты', n: '/projects'}];
 
     return (
         <div ref={sidebarRef} className={`fixed m-4 h-[calc(100dvh-1.5rem)] text-white transition-all duration-300 ease-in-out z-50 w-12`} id="sideBar">
             <div className="flex items-center px-2 py-1"><img className='size-8' id='Logo' src={`..\\img\\logo.png`} alt='Logo' /></div>
             <nav className="rounded-2xl bg-[#131315] my-4">
-                <Button id="homeButton" w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl" variant="ghost" colorPalette="gray" onClick={() => navigate('/')}>
-                    <FaHouse className="text-white min-w-6 min-h-6" />
-                    <span className={`font-medium transition-all duration-300 opacity-0 w-0 overflow-hidden`}>Главная</span>
-                </Button>
+                {/* <Button id="homeButton" w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl" variant="ghost" colorPalette="gray" onClick={() => navigate('/')}>
+                    <BsHouse className="text-white min-w-6 min-h-6" />
+                </Button> */}
                 { pages.map(btn => (
                     <Button w='100%' h={12} p={3} justifyContent='flex-start' fontSize='md' lineHeight='1.5' borderWidth={0} color='#e0e0e0' rounded="2xl" variant="ghost" colorPalette="gray" title={btn.t} onClick={() => navigate(btn.n)}>
                         <btn.i className="text-white min-w-6 min-h-6" />

@@ -6,6 +6,7 @@ const schema = new Schema({
     parentId: {type: Types.ObjectId, ref: "task"}, // ID родительской задачи
     status: {type: Boolean}, // Статус задачи (True=Выполнено, False=НЕ Выполнено)
     title: {type: String, required: true}, // Название задачи
+    shortTitle: {type: String}, // Короткое название задачи
     description: {type: String}, // Описание задачи
     isEvent: {type: Boolean}, // Тип задачи (True=Мероприятие, False=Задача)
     isProject: {type: Boolean}, // Тип задачи (True=Проект, False=Задача)
@@ -17,6 +18,7 @@ const schema = new Schema({
         name: { type: String, required: true },
         status: { type: Boolean }
     }, { _id: true })],
+    checkDate: { type: Date }, // дата последнего выполнения задачи
 
     // Поля для повторяющихся задач
     isTemplate: { type: Boolean, default: false }, // true для шаблонной задачи (серии)
@@ -31,24 +33,22 @@ const schema = new Schema({
     doneInstances: [{ type: String }], // даты выполненных экземпляров
     changedInstances: { 
         type: Map, 
-        of: {
+        of: new Schema({
             subTasks: [{
                 name: { type: String },
                 status: { type: Boolean },
-                _id: { type: Types.ObjectId }
+                _id: { type: Types.ObjectId },
             }],
             title: { type: String },
             description: { type: String },
             eisenhower: { type: String },
-            epic: { type: String },
-            parentId: { type: Types.ObjectId, ref: "task" },
             dateStart: { type: Date },
             dateEnd: { type: Date },
             isEvent: { type: Boolean }
-        },
+        }, { _id: false }),
         default: new Map()
     },
-    canceledInstances: [{ type: String }],
+    deletedInstances: [{ type: String }],
 })
 
 module.exports = model('task', schema)

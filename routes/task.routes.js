@@ -69,7 +69,7 @@ function* iterateOccurrences(recurrence, from, to) {
 
 router.post('/create', auth, async (req, res) => {
     try {
-        const {epic, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, isProject, parentId} = req.body;
+        const {epic, status, parentsTitles, title, shortTitle, description, isEvent, dateStart, dateEnd, eisenhower, isProject, parentId} = req.body;
         const subTasks = Array.isArray(req.body.subTasks) ? req.body.subTasks : [];
         const recurrence = req.body.recurrence || undefined;
         const isTemplate = !!req.body.isTemplate;
@@ -88,7 +88,7 @@ router.post('/create', auth, async (req, res) => {
             if (recurrence.endDate) out.endDate = recurrence.endDate;
             return out;
         })() : undefined;
-        const task = new Task({ code, epic, parentId, parentsTitles, status, title, description, isEvent, isProject,
+        const task = new Task({ code, epic, parentId, parentsTitles, status, title, shortTitle, description, isEvent, isProject,
             dateStart: dateStart ? new Date(dateStart) : undefined,
             dateEnd: dateEnd ? new Date(dateEnd) : undefined,
             eisenhower,
@@ -103,34 +103,62 @@ router.post('/create', auth, async (req, res) => {
 
 router.put('/update/:id', async (req, res) => {
     try {
-        const {_id, epic, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject, parentId} = req.body;
+        const {_id, epic, status, parentsTitles, title, shortTitle, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject, parentId} = req.body;
         const existing = await Task.findById(_id);
         if (!existing) return res.status(404).json({ error: 'Задача не найдена' });
 
         subTasks?.forEach(obj => delete obj._id);
-
-        // // Определяем цель обновления: экземпляр или серия
-        // if (editScope === 'series' && existing.templateId) {
-        //     // редактируем шаблон серии
-        //     const task = await Task.findByIdAndUpdate(existing.templateId, { $set: {
-        //         epic, parentId, status, parentsTitles, title, description, isEvent, dateStart, dateEnd, eisenhower, subTasks, recurrence
-        //     } }, { new: true });
-        //     return res.status(201).json({ task, error: undefined })
-        // }
-
-        // По умолчанию: обновляем сам документ (экземпляр или шаблон)
-        const task = await Task.findByIdAndUpdate( _id, { epic, parentId, status, parentsTitles, title, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject }, { new: true } );
+        const task = await Task.findByIdAndUpdate( _id, { epic, parentId, status, parentsTitles, title, shortTitle, description, isEvent, isTemplate, dateStart, dateEnd, eisenhower, subTasks, recurrence, isProject }, { new: true } );
 
         res.status(201).json({ task, error: undefined })
     } catch (err) { res.status(500).json({ error: err.message }) }
 });
 
+router.put('/updateInstance/:id', async (req, res) => {
+    try {
+        const instance = req.body;
+        const instanceId = instance._id.slice(instance._id.length - 10);
+        const _id = instance._id.slice(0, instance._id.length - 11);
+        delete instance._id;
+        
+        const template = await Task.findById(_id);
+        if (!template) return res.status(404).json({ error: 'Шаблон повторяющейся задачи не найден' });
+
+        var changedInstances = {};
+        changedInstances[instanceId] = {};
+        
+        for (const key of Object.keys(instance)) {
+            if (['isTemplate', 'shortTitle', 'recurrence', 'epic', 'parentId'].includes(key)) continue;
+            if (key === 'subTasks') {
+                const instanceSubTasks = instance[key]?.map(st => ({ name: st.name, status: st.status })) || [];
+                const templateSubTasks = template[key]?.map(st => ({ name: st.name, status: st.status })) || [];
+
+                if (JSON.stringify(instanceSubTasks) !== JSON.stringify(templateSubTasks)) {
+                    changedInstances[instanceId][key] = instanceSubTasks;
+                }
+            } else if (key === 'dateStart' || key === 'dateEnd') {
+                // Специальная обработка для дат - сравниваем как строки ISO
+                const instanceDate = instance[key] ? new Date(instance[key]).toISOString() : null;
+                const templateDate = template[key] ? new Date(template[key]).toISOString() : null;
+                
+                if (instanceDate !== templateDate) {
+                    changedInstances[instanceId][key] = instance[key];
+                }
+            } else if (JSON.stringify(instance[key]) !== JSON.stringify(template[key])) {
+                changedInstances[instanceId][key] = instance[key];
+            }
+        }
+        
+        if (Object.keys(changedInstances[instanceId]).length > 0) await Task.findByIdAndUpdate(_id, { $set: { [`changedInstances.${instanceId}`]: changedInstances[instanceId] } });
+        res.status(201).json({})
+    } catch (err) { res.status(500).json({ error: err.message }) }
+})
+
 router.put('/check/:id', async (req, res) => {
     try {
         const {_id, status, subTasks} = req.body;
-        console.log(_id, status, subTasks);
-        if (typeof status === 'boolean') {await Task.findByIdAndUpdate( _id, { status: status })}
-        else if (subTasks) {await Task.findByIdAndUpdate( _id, {subTasks: subTasks})}
+        if (typeof status === 'boolean') {await Task.findByIdAndUpdate( _id, { status: status, checkDate: new Date() })}
+        else if (subTasks) {await Task.findByIdAndUpdate( _id, {subTasks: subTasks })}
         else {
             const checkingTask = await Task.findOne({ _id: _id.slice(0, _id.length - 11) })
             const { doneInstances: dones } = checkingTask;
@@ -143,10 +171,10 @@ router.put('/check/:id', async (req, res) => {
 
 router.get('/', auth, async (req, res) => {
     try {
-        const today = new Date(), tomorrow = new Date(), month = new Date(), minusMonth = new Date();
+        const yesterday = new Date(), today = new Date(), month = new Date(), minusMonth = new Date();
         today.setUTCHours(0, 0, 0, 0);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setUTCHours(0, 0, 0, 0);
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setUTCHours(0, 0, 0, 0);
         month.setMonth(month.getMonth() + 1);
         month.setUTCHours(23, 59, 59, 999);
         minusMonth.setMonth(minusMonth.getMonth() - 1);
@@ -162,35 +190,65 @@ router.get('/', auth, async (req, res) => {
             const tplStart = tpl.recurrence?.startDate || tpl.dateStart || tpl.dateEnd || today;
             const baseStart = tpl.dateStart || tplStart;
             const baseEnd = tpl.dateEnd || tplStart;
-            for (const occ of iterateOccurrences(tpl.recurrence, (tpl.epic === 'Привычки' ? today : periodStart), (tpl.epic === 'Привычки' ? tomorrow : periodEnd))) {
-                const deltaMs = (new Date(baseEnd).getTime()) - (new Date(baseStart).getTime());
+            for (const occ of iterateOccurrences(tpl.recurrence, (tpl.epic === 'Привычки' ? yesterday : periodStart), (tpl.epic === 'Привычки' ? today : periodEnd))) {
+                const instDate = `${occ.getFullYear()}-${occ.getMonth()+1}-${occ.getDate()}`;
+
+                if (tpl.deletedInstances?.includes(instDate)) continue;
+
+                const instChanged = tpl.changedInstances.get(instDate);
                 
                 let instStart, instEnd;
-                if (tpl.dateStart) {
-                    // Если есть время начала, создаем дату с учетом времени из базовой задачи
+                // Проверяем, есть ли изменения дат в changedInstances
+                if (instChanged?.dateStart && instChanged?.dateEnd) {
+                    // Если изменены и дата начала, и дата окончания
+                    instStart = new Date(instChanged.dateStart);
+                    instEnd = new Date(instChanged.dateEnd);
+                } else if (instChanged?.dateStart) {
+                    // Если изменена только дата начала - сохраняем время окончания из шаблона
+                    instStart = new Date(instChanged.dateStart);
+                    if (tpl.dateEnd) {
+                        // Сохраняем время окончания из шаблона, но на дату экземпляра
+                        const baseEndDate = new Date(baseEnd);
+                        instEnd = new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), baseEndDate.getHours(), baseEndDate.getMinutes(), 0, 0);
+                    } else {
+                        instEnd = new Date(occ);
+                    }
+                } else if (instChanged?.dateEnd) {
+                    // Если изменена только дата окончания - сохраняем время начала из шаблона
+                    instEnd = new Date(instChanged.dateEnd);
+                    if (tpl.dateStart) {
+                        // Сохраняем время начала из шаблона, но на дату экземпляра
+                        const baseStartDate = new Date(baseStart);
+                        instStart = new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), baseStartDate.getHours(), baseStartDate.getMinutes(), 0, 0);
+                    } else {
+                        instStart = new Date(occ);
+                    }
+                } else if (tpl.dateStart) {
+                    // Стандартная логика для шаблона с датой начала
+                    const deltaMs = (new Date(baseEnd).getTime()) - (new Date(baseStart).getTime());
                     const baseStartDate = new Date(baseStart);
                     instStart = new Date(occ.getFullYear(), occ.getMonth(), occ.getDate(), baseStartDate.getHours(), baseStartDate.getMinutes(), 0, 0);
                     instEnd = new Date(instStart.getTime() + deltaMs);
                 } else {
-                    // Если нет времени начала, используем только дату
+                    // Стандартная логика для шаблона без даты начала
                     instStart = new Date(occ);
                     instEnd = new Date(occ);
                 }
-                
+
                 tasks.push({
-                    _id: `${tpl._id}_${occ.getFullYear()}-${occ.getMonth()+1}-${occ.getDate()}`,
+                    _id: `${tpl._id}_${instDate}`,
                     owner: req.user.userId,
-                    epic: tpl.epic,
+                    epic: instChanged?.epic || tpl.epic,
                     parentId: tpl.parentId,
                     parentsTitles: tpl.parentsTitles,
-                    status: !!tpl.doneInstances.filter(instance => instance === `${occ.getFullYear()}-${occ.getMonth()+1}-${occ.getDate()}`)?.[0],
-                    title: tpl.title,
-                    description: tpl.description,
-                    isEvent: tpl.isEvent,
+                    status: !!tpl.doneInstances.filter(instance => instance === instDate)?.[0],
+                    title: instChanged?.title || tpl.title,
+                    description: instChanged?.description || tpl.description,
+                    isEvent: instChanged?.isEvent || tpl.isEvent,
                     dateStart: instStart,
                     dateEnd: instEnd,
-                    eisenhower: tpl.eisenhower,
-                    subTasks: tpl.subTasks,
+                    eisenhower: instChanged?.eisenhower || tpl.eisenhower,
+                    subTasks: instChanged?.subTasks || tpl.subTasks,
                     templateId: tpl._id,
                     instanceDate: occ,
                 });
@@ -204,8 +262,16 @@ router.get('/', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
     try {
-        const task = await Task.findById(req.params.id);
-        await Task.findByIdAndDelete(req.params.id);
+        var task;
+        if (req.params.id.includes('_')) {
+            task = await Task.findById(req.params.id.slice(0, req.params.id.length - 11));
+            const { deletedInstances: deletes } = task;
+            const newDeletedInstances = (deletes.filter(inst => inst === req.params.id.slice(req.params.id.length - 10))?.[0] ? deletes.filter(inst => inst !== req.params.id.slice(req.params.id.length - 10)) : [...deletes, req.params.id.slice(req.params.id.length - 10)]);
+            await Task.findByIdAndUpdate( task._id, { deletedInstances: newDeletedInstances });
+        } else {
+            task = await Task.findById(req.params.id);
+            await Task.findByIdAndDelete(req.params.id);
+        }
         res.json({ task, message: 'Задача удалена' });
     } catch (e) { res.status(500).json({ message: 'Ошибка при удалении задачи' }) }
 });

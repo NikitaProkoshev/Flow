@@ -18,8 +18,11 @@ export const TasksPage = () => {
     const monthString = normalizeDate(new Date().setMonth(new Date().getMonth() + 1));
 
     const todayTasks = tasks.filter(task => todayString >= normalizeDate(task.dateEnd.slice(0,10)) || (task.dateStart ? todayString >= normalizeDate(task.dateStart.slice(0,10)) && todayString <= normalizeDate(task.dateEnd.slice(0,10)) : false))
+    const todayEvents = events.filter(event => todayString >= normalizeDate(event.dateEnd.slice(0,10)) || (event.dateStart ? todayString >= normalizeDate(event.dateStart.slice(0,10)) && todayString <= normalizeDate(event.dateEnd.slice(0,10)) : false))
     const weekTasks = tasks.filter(task => weekString >= normalizeDate(task.dateEnd.slice(0,10)) || (task.dateStart ? weekString >= normalizeDate(task.dateStart.slice(0,10)) && weekString <= normalizeDate(task.dateEnd.slice(0,10)) : false))
+    const weekEvents = events.filter(event => weekString >= normalizeDate(event.dateEnd.slice(0,10)) || (event.dateStart ? weekString >= normalizeDate(event.dateStart.slice(0,10)) && weekString <= normalizeDate(event.dateEnd.slice(0,10)) : false))
     const monthTasks = tasks.filter(task => monthString >= normalizeDate(task.dateEnd.slice(0,10)) || (task.dateStart ? monthString >= normalizeDate(task.dateStart.slice(0,10)) && monthString <= normalizeDate(task.dateEnd.slice(0,10)) : false))
+    const monthEvents = events.filter(event => monthString >= normalizeDate(event.dateEnd.slice(0,10)) || (event.dateStart ? monthString >= normalizeDate(event.dateStart.slice(0,10)) && monthString <= normalizeDate(event.dateEnd.slice(0,10)) : false))
 
     var tasksCopy = JSON.parse(JSON.stringify(tab === 't' ? todayTasks : tab === 'w' ? weekTasks : monthTasks));
     tasksCopy = tasksCopy.filter(task => epics.includes(task.epic));
@@ -40,7 +43,7 @@ export const TasksPage = () => {
                 <Tabs.Trigger value="m">Месяц</Tabs.Trigger>
             </Tabs.List>
         </Tabs.Root>
-        <div className={`grid grid-cols-${Object.keys(epicToIcon).length} lg:h-[${'calc('+document.getElementById('block2')?.clientHeight +'px+2rem)'}] min-h-[100vh] lg:grid-rows-2 gap-8 w-full items-start sm:px-8`} id="tasksDashBoard">
+        <div className={`grid grid-cols-${Object.keys(epicToIcon).length} lg:h-[${'calc('+document.getElementById('block2')?.clientHeight +'px+2rem)'}] min-h-[calc(100vh-4.5rem-1px)] lg:grid-rows-2 gap-8 w-full items-start sm:px-8`}>
             <div className="col-span-8 lg:row-span-2 lg:col-span-6 grid grid-cols-subgrid lg:grid-rows-subgrid gap-0 h-full" id="block1">
                 <Box className='col-span-8 lg:col-span-3' overflowY='auto' scrollbarWidth='thin' scrollbarColor='#e0e0e0 #161616' lg={{ pr: 4, pb: 4 }}>
                     <h2 className="gradient-font text-3xl w-full text-center">A</h2>
@@ -63,7 +66,7 @@ export const TasksPage = () => {
                 <h2 className="gradient-font text-3xl h-10">Привычки</h2>
                 <Habits habits={habits} />
                 <h2 className="gradient-font text-3xl h-10">Мероприятия</h2>
-                <TasksList tasks={events.filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))} />
+                <TasksList tasks={(tab === 't' ? todayEvents : tab === 'w' ? weekEvents : monthEvents).filter((task) => !task.status).sort((a,b) => new Date(a.dateEnd) - new Date(b.dateEnd))} />
             </div>
         </div>
     </div>);

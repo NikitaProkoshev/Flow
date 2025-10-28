@@ -7,7 +7,7 @@ export const HabitsPage = () => {
     const { habitsTemplates } = useTasks();
 
     return (<div className='m-4'>
-        <h2 className="gradient-font text-3xl">Привычки</h2>
+        <h2 className="gradient-font text-3xl">ХУЙ</h2>
         <Box w='50%'>
             {habitsTemplates.map((template) => (
                 <div key={template._id} className="my-4 pb-[1px] bg-[#0e0e10] rounded-2xl">

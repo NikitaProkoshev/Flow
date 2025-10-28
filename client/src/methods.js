@@ -63,7 +63,7 @@ export function upDownSubTask(target, subTasks, subTask, setSubTasks) {
     setSubTasks(subTasksCopy);
 }
 
-export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, fontSize, color) {
+export function formatDateDisplay(dateStart, dateEnd, hasTime, fontSize, color) {
     const isToday = (date) =>  date.toDateString() === today.toDateString();
     const formatTime = (date) =>  date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false });
     const formatDate = (date, showYear = false) => date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', ...(showYear && { year: 'numeric' }) });
@@ -71,7 +71,7 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
     if (!dateStart || dateStart?.getFullYear() === 1970) {
         return (<div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
             <span className={`text-${fontSize || 'md'} font-medium`}> {isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear())} </span>
-            {endHasTime && (
+            {hasTime && (
                 <><span className={`text-[${color || '#a0a0a0'}]`}>•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateEnd)}</span></>
             )}
         </div>)
@@ -82,20 +82,22 @@ export function formatDateDisplay(dateStart, dateEnd, startHasTime, endHasTime, 
         <div className={`flex items-center space-x-2 text-[${color || '#a0a0a0'}]`}>
             <div className="flex items-center space-x-1">
                 <span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateStart) ? 'Сегодня' : formatDate(dateStart, dateStart.getFullYear() !== today.getFullYear())}</span>
-                {startHasTime && <><span className="text-gray-500">•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateStart)}</span></>}
+                {hasTime && <><span className={`text-[${color || '#a0a0a0'}]`}>•</span><span className={`text-${fontSize || 'md'}`}>{formatTime(dateStart)}</span></>}
             </div>
-            <FaArrowRight className={`text-[${color || '#a0a0a0'}] text-${fontSize || 'md'}`} />
-            <div className="flex items-center space-x-1">
-                {!sameDay && (<span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear() )}</span>)}
-                {endHasTime && (<>
-                    {!sameDay && (
-                        <span className={`text-[${color || '#a0a0a0'}]`}>•</span>
-                    )}
-                    <span className={`text-${fontSize || 'md'}`}>
-                        {formatTime(dateEnd)}
-                    </span>
-                </>)}
-            </div>
+            {!(sameDay && !hasTime) && <>
+                <FaArrowRight className={`text-[${color || '#a0a0a0'}] text-${fontSize || 'md'}`} />
+                <div className="flex items-center space-x-1">
+                    {!sameDay && (<span className={`text-${fontSize || 'md'} font-medium`}>{isToday(dateEnd) ? 'Сегодня' : formatDate(dateEnd, dateEnd.getFullYear() !== today.getFullYear() )}</span>)}
+                    {hasTime && (<>
+                        {!sameDay && (
+                            <span className={`text-[${color || '#a0a0a0'}]`}>•</span>
+                        )}
+                        <span className={`text-${fontSize || 'md'}`}>
+                            {formatTime(dateEnd)}
+                        </span>
+                    </>)}
+                </div>
+            </>}
         </div>
     );
 }
@@ -142,22 +144,22 @@ export function formatRecurrencePeriod(template) {
 
 export function formatRecurrenceFrequency(template) {
     const { recurrence } = template;
-    const interval = recurrence.interval || 1;
+    const interval = recurrence.interval || 0;
     const frequency = recurrence.frequency;
     let frequencyString = '';
     
     switch (frequency) {
         case 'daily':
-            frequencyString = interval === 1 ? 'день' : (interval < 5 ? 'дня' : 'дней');
+            frequencyString = interval === 1 ? 'день' : (1 < interval && interval < 5 ? 'дня' : 'дней');
             break;
         case 'weekly':
-            frequencyString = interval === 1 ? 'неделю' : (interval < 5 ? 'недели' : 'недель');
+            frequencyString = interval === 1 ? 'неделю' : (1 < interval && interval < 5 ? 'недели' : 'недель');
             break;
         case 'monthly':
-            frequencyString = interval === 1 ? 'месяц' : (interval < 5 ? 'месяца' : 'месяцев');
+            frequencyString = interval === 1 ? 'месяц' : (1 < interval && interval < 5 ? 'месяца' : 'месяцев');
             break;
         case 'yearly':
-            frequencyString = interval === 1 ? 'год' : (interval < 5 ? 'года' : 'лет');
+            frequencyString = interval === 1 ? 'год' : (1 < interval && interval < 5 ? 'года' : 'лет');
             break;
         default:
             frequencyString = undefined;

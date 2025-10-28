@@ -28,9 +28,9 @@ interface TemplatesProps {
 }
 
 export const Templates = ({ templates }: TemplatesProps) => {
-    const { loading } = useTasks();
+    const { firstLoad } = useTasks();
 
-    if (loading) {
+    if (firstLoad) {
         return <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 w-full p-4 items-start sm:px-8">
             {Array.from({ length: 16 }, (_, index) => (<Card.Root key={index} maxW="sm" display="flex" flexDirection="column" alignItems="flex-start" p={4} bg="#121213" borderRadius="2xl">
                 <Card.Header p={0} w="full"><Skeleton height="24px" width="80%" mb={2} /><Skeleton height="16px" width="60%" /></Card.Header>

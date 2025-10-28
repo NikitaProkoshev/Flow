@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useEffect, useContext, useState } from 'react';
 import { useHttp } from '../hooks/http.hook';
 import { AuthContext } from './AuthContext';
-import { dateToString } from '../methods';
 
 const TasksContext = createContext();
 
@@ -18,12 +17,14 @@ export const TasksProvider = ({ children }) => {
     const { token } = useContext(AuthContext);
     const [allTasks, setAllTasks] = useState([]);
     const [loading, updateTasks] = useState(true);
+    const [firstLoad, setFirstLoad] = useState(true);
 
     const fetchTasks = useCallback(async () => {
         try {
             const fetched = await request('/api/task', 'GET', null, { Authorization: `Bearer ${token}` });
             setAllTasks(fetched);
             updateTasks(false);
+            if (firstLoad) setFirstLoad(false);
         } catch (e) { console.log(e) }
     }, [token, request]);
 
@@ -50,6 +51,7 @@ export const TasksProvider = ({ children }) => {
     const value = {
         allTasks,
         loading,
+        firstLoad,
         updateTasks,
         habitsTemplates,
         eventsTemplates,
